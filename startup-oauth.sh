@@ -478,7 +478,15 @@ else
 
     write_stage "frontend_build"
     echo -e "${GREEN}Building frontend...${NC}"
-    (cd web && npm run build)
+    if ! (cd web && npm run build); then
+        echo ""
+        echo -e "${RED}❌ Frontend build failed!${NC}"
+        echo -e "${RED}   Common fixes:${NC}"
+        echo -e "${RED}   1. cd web && npm install && npm run build${NC}"
+        echo -e "${RED}   2. Check for TypeScript errors in the output above${NC}"
+        echo -e "${RED}   3. rm -rf web/node_modules && cd web && npm install${NC}"
+        exit 1
+    fi
     echo -e "${GREEN}Frontend built successfully${NC}"
 
     # Start backend on port 8081 — watchdog on 8080 proxies to it
