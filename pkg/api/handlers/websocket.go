@@ -48,6 +48,9 @@ const (
 	// is a safe upper bound for a single instance; scale horizontally for higher capacity.
 	// Configurable via WS_MAX_CONNECTIONS environment variable.
 	defaultMaxWebSocketConnections = 1000
+	// wsEvictionInterval is how often to evict stale demo sessions from the hub map.
+	// Prevents unbounded memory growth in long-running servers.
+	wsEvictionInterval = 5 * time.Minute
 )
 
 // Message represents a WebSocket message
@@ -177,6 +180,9 @@ func (h *Hub) config() (jwtSecret string, devMode bool) {
 
 // Run starts the hub
 func (h *Hub) Run() {
+	evictionTicker := time.NewTicker(wsEvictionInterval)
+	defer evictionTicker.Stop()
+
 	for {
 		select {
 		case client := <-h.register:
@@ -238,6 +244,17 @@ func (h *Hub) Run() {
 					}(client)
 				}
 			}
+
+		case <-evictionTicker.C:
+			// Periodically evict stale demo sessions to prevent unbounded map growth
+			h.mu.Lock()
+			cutoff := time.Now().Add(-wsInactiveCutoff)
+			for id, lastSeen := range h.demoSessions {
+				if !lastSeen.After(cutoff) {
+					delete(h.demoSessions, id)
+				}
+			}
+			h.mu.Unlock()
 
 		case <-h.done:
 			return
