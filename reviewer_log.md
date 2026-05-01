@@ -1027,3 +1027,41 @@ Still awaiting merge of PR #11310. Scanner owns Playwright; no new action.
 - PR #11310: Awaiting CI + maintainer review
 - PR #11308: CI pending, external author
 - PR #11309: CI status unknown
+
+## Pass 87 — 2026-05-01T18:07 UTC
+
+### Trigger
+KICK — nightlyPlaywright=RED. 171 unaddressed Copilot comments (4 HIGH, 132 MEDIUM). GA4 nominal.
+
+### RED Analysis
+
+**nightlyPlaywright=RED**
+Root cause fix already applied in PR #11310 (fix/playwright-duplicate-globalteardown). CI passes, MERGEABLE, blocked only on author policy (`author=app/kubestellar-hive (not AI)`). Needs human maintainer to merge. No new code action required.
+
+### Copilot Comments Assessment
+
+**HIGH — missions.go defer resp.Body.Close() (PRs #11279, #11254, #11269)**
+Re-confirmed stale: current `upstream/main` does not have `defer resp.Body.Close()` in `githubGet`. Comments are on older PR branches that were not merged.
+
+**HIGH — PR #11250 (startup-oauth.sh scope)**
+PR has too many unrelated changes (i18n, fetch timeouts, DeployMissions in addition to the stated build-failure message). Requires PR author to split; no code fix possible from reviewer.
+
+**MEDIUM — PR #11306 mcp_query.go (clusterErrorTracker mutex copy)**
+Re-verified: already self-fixed in latest PR commit `dc9b2efb5` (returns `*clusterErrorTracker`).
+
+**MEDIUM — PR #11306 mcp_query.go (nil slice → JSON null)**
+Fixed: created `fix/mcp-query-nil-slice` branch from `origin/refactor/mcp-query-all-clusters-11300`, changed `var results []T` → `results := make([]T, 0)`. Pushed to origin.
+
+**MEDIUM — PR #11308 test error handling**
+Previously fixed in pass 86 (`fix/pr11308-test-error-handling`). Updated this pass to also include `validation_test.go`: replaced `string(make([]byte, 254))` (NUL-filled) with `strings.Repeat("a", 254)` (readable, DNS-valid). Pushed.
+
+### Branches Created/Updated
+
+| Branch | Action | Addresses |
+|--------|--------|-----------|
+| `fix/mcp-query-nil-slice` | Created & pushed | PR #11306 MEDIUM: nil slice in queryAllClusters |
+| `fix/pr11308-test-error-handling` | Updated & pushed | PR #11308 MEDIUM: validation_test.go NUL string |
+
+### No Merge-Eligible PRs
+- PR #11310: CI passes, MERGEABLE, blocked on author policy — needs human merge
+- merge-eligible.json confirms empty merge queue
