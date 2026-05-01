@@ -539,53 +539,65 @@ var (
 	operatorCacheMu    sync.RWMutex
 	operatorCacheData  = make(map[string]*operatorCacheEntry)
 	operatorFetchGroup singleflight.Group
-	operatorEvictOnce  sync.Once
-	// operatorEvictDone is closed to stop the background evictor goroutine
-	// on server shutdown or in tests, preventing goroutine leaks.
-	operatorEvictDone = make(chan struct{})
+	// operatorEvictMu protects the evictor context so start/stop are safe
+	// across concurrent callers and multiple server lifecycles (tests).
+	operatorEvictMu     sync.Mutex
+	operatorEvictCtx    context.Context
+	operatorEvictCancel context.CancelFunc
 )
 
 // ListOperators returns OLM-managed operators (ClusterServiceVersions)
 
 // startOperatorCacheEvictor begins a background goroutine that evicts expired
 // operator cache entries every 5 minutes. Empty results use a 30s TTL, normal
-// results use a 5m TTL. Must be called exactly once from getOperatorsForCluster().
+// results use a 5m TTL. Safe to call multiple times; only the first call while
+// no evictor is running starts a new goroutine.
 func startOperatorCacheEvictor() {
-	operatorEvictOnce.Do(func() {
-		go func() {
-			ticker := time.NewTicker(operatorCacheEvictionInterval)
-			defer ticker.Stop()
+	operatorEvictMu.Lock()
+	defer operatorEvictMu.Unlock()
 
-			for {
-				select {
-				case <-operatorEvictDone:
-					return
-				case <-ticker.C:
-					operatorCacheMu.Lock()
-					now := time.Now()
-					for cacheKey, entry := range operatorCacheData {
-						ttl := operatorCacheTTL
-						if len(entry.operators) == 0 {
-							ttl = operatorCacheEmptyTTL
-						}
-						if now.Sub(entry.fetchedAt) > ttl {
-							delete(operatorCacheData, cacheKey)
-						}
+	if operatorEvictCtx != nil {
+		return // already running
+	}
+
+	operatorEvictCtx, operatorEvictCancel = context.WithCancel(context.Background())
+	ctx := operatorEvictCtx // local copy for the goroutine
+	go func() {
+		ticker := time.NewTicker(operatorCacheEvictionInterval)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				operatorCacheMu.Lock()
+				now := time.Now()
+				for cacheKey, entry := range operatorCacheData {
+					ttl := operatorCacheTTL
+					if len(entry.operators) == 0 {
+						ttl = operatorCacheEmptyTTL
 					}
-					operatorCacheMu.Unlock()
+					if now.Sub(entry.fetchedAt) > ttl {
+						delete(operatorCacheData, cacheKey)
+					}
 				}
+				operatorCacheMu.Unlock()
 			}
-		}()
-	})
+		}
+	}()
 }
 
-// StopOperatorCacheEvictor signals the background evictor goroutine to exit.
-// Safe to call multiple times. Intended for server shutdown and tests.
+// StopOperatorCacheEvictor cancels the background evictor goroutine.
+// Safe to call multiple times and across server lifecycles. After stopping,
+// a subsequent call to startOperatorCacheEvictor will start a new goroutine.
 func StopOperatorCacheEvictor() {
-	select {
-	case <-operatorEvictDone:
-		// Already closed
-	default:
-		close(operatorEvictDone)
+	operatorEvictMu.Lock()
+	defer operatorEvictMu.Unlock()
+
+	if operatorEvictCancel != nil {
+		operatorEvictCancel()
+		operatorEvictCtx = nil
+		operatorEvictCancel = nil
 	}
 }

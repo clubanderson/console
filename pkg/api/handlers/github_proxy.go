@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"io"
 	"log/slog"
 	"net/http"
@@ -64,11 +65,9 @@ var githubProxyLimiters struct {
 	sync.Mutex
 	m            map[string]*githubProxyLimiterEntry
 	evictStarted bool
+	evictCtx     context.Context
+	evictCancel  context.CancelFunc
 }
-
-// githubProxyEvictDone is closed to stop the background evictor goroutine
-// on server shutdown or in tests, preventing goroutine leaks.
-var githubProxyEvictDone = make(chan struct{})
 
 func init() {
 	githubProxyLimiters.m = make(map[string]*githubProxyLimiterEntry)
@@ -87,7 +86,9 @@ func getGitHubProxyLimiter(userID string) *rate.Limiter {
 	// Lazy-start the evictor on first limiter creation
 	if !githubProxyLimiters.evictStarted {
 		githubProxyLimiters.evictStarted = true
-		go startGitHubProxyLimiterEvictor()
+		githubProxyLimiters.evictCtx, githubProxyLimiters.evictCancel = context.WithCancel(context.Background())
+		ctx := githubProxyLimiters.evictCtx // local copy for the goroutine
+		go startGitHubProxyLimiterEvictor(ctx)
 	}
 
 	if entry, ok := githubProxyLimiters.m[userID]; ok {
@@ -108,14 +109,14 @@ func getGitHubProxyLimiter(userID string) *rate.Limiter {
 
 // startGitHubProxyLimiterEvictor periodically removes idle rate limiters
 // (no requests for >10 minutes) to prevent unbounded map growth.
-// Exits when githubProxyEvictDone is closed.
-func startGitHubProxyLimiterEvictor() {
+// Exits when the provided context is cancelled.
+func startGitHubProxyLimiterEvictor(ctx context.Context) {
 	ticker := time.NewTicker(githubProxyEvictionInterval)
 	defer ticker.Stop()
 
 	for {
 		select {
-		case <-githubProxyEvictDone:
+		case <-ctx.Done():
 			return
 		case <-ticker.C:
 			githubProxyLimiters.Lock()
@@ -130,15 +131,19 @@ func startGitHubProxyLimiterEvictor() {
 	}
 }
 
-// StopGitHubProxyLimiterEvictor signals the background evictor goroutine to exit.
-// Safe to call multiple times. Intended for server shutdown and tests.
+// StopGitHubProxyLimiterEvictor cancels the background evictor goroutine.
+// Safe to call multiple times and across server lifecycles. After stopping,
+// a new evictor will be started on the next call to getGitHubProxyLimiter.
 func StopGitHubProxyLimiterEvictor() {
-	select {
-	case <-githubProxyEvictDone:
-		// Already closed
-	default:
-		close(githubProxyEvictDone)
+	githubProxyLimiters.Lock()
+	defer githubProxyLimiters.Unlock()
+
+	if githubProxyLimiters.evictCancel != nil {
+		githubProxyLimiters.evictCancel()
+		githubProxyLimiters.evictCtx = nil
+		githubProxyLimiters.evictCancel = nil
 	}
+	githubProxyLimiters.evictStarted = false
 }
 
 // allowedGitHubPrefixes restricts which GitHub API paths can be proxied.
