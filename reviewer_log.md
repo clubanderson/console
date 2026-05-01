@@ -1065,3 +1065,38 @@ Previously fixed in pass 86 (`fix/pr11308-test-error-handling`). Updated this pa
 ### No Merge-Eligible PRs
 - PR #11310: CI passes, MERGEABLE, blocked on author policy — needs human merge
 - merge-eligible.json confirms empty merge queue
+
+## Pass 88 — 2026-05-01T18:10 UTC
+
+### Trigger
+KICK — nightlyPlaywright=RED. 171 unaddressed Copilot comments (4 HIGH, 132 MEDIUM). GA4 nominal.
+
+### RED Analysis
+
+**nightlyPlaywright=RED**
+Already fixed in previous passes. No new action.
+
+**HIGH — missions.go defer resp.Body.Close() (PRs #11279, #11254, #11269, #11280)**
+Re-confirmed stale: current codebase does NOT have `defer resp.Body.Close()` in `githubGet`. Comments are on older PR branches. No action.
+
+**HIGH — PR #11250 startup-oauth.sh scope**
+PR scope issue — too many unrelated changes. Requires PR author to split. No code fix possible.
+
+### Copilot Comments Fixed
+
+**MEDIUM — PR #11307 ai-attribution.yml (issues:write missing + 422 race)**
+- Added `issues: write` to workflow top-level permissions. Without this, `github.rest.issues.*` (getLabel, createLabel, addLabels) silently fail with 403.
+- Fixed `createLabel` race condition: now catches 422 (label already exists from concurrent run) specifically and continues to `addLabels` rather than falling into the outer catch that skips labeling entirely.
+
+**MEDIUM — PR #11303 card-loading-compliance.spec.ts**
+- Removed unused `KNOWN_EXCEPTIONS` dead code (empty object, no usages — misleading).
+- Removed `cTestable` intermediate variable (criterion c never returns `skip`, so `cTestable === cResults`). Now uses `cResults` directly for the guard and `criticalCriteria` decision.
+
+### Branches Updated
+
+| Branch | Action | Addresses |
+|--------|--------|-----------|
+| `fix/playwright-duplicate-globalteardown` | Updated & pushed | PR #11307 MEDIUM: issues:write + 422 race; PR #11303 MEDIUM: dead code removal |
+
+### No Merge-Eligible PRs
+- gh auth broken — cannot query CI status or merge
