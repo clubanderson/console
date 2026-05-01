@@ -1159,3 +1159,40 @@ All 6 HIGH source-file comments remain addressed from passes 78–81:
 - `preflightCheck-coverage.test.ts:443` (PR #11192) → addressed by PR #11235, now merged ✅
 
 **Status:** nightly=GREEN. GitHubActivity fetch timeout fix pushed. nightlyPlaywright=RED remains (scanner-owned).
+
+---
+
+## Pass 97 — 2026-05-01T13:45 UTC
+
+### Trigger
+KICK — nightlyPlaywright=RED. 68 unaddressed Copilot comments (1 HIGH). GA4 nominal.
+
+### RED Analysis
+
+**nightlyPlaywright=RED** — nightly suite (issue #11241) shows 100% pass (32/32). RED is stale/cached. Per instructions: scanner owns Playwright fixes.
+
+### Copilot Comment Fixes Applied
+
+| File | Issue | Fix | Branch |
+|------|-------|-----|--------|
+| `pkg/api/handlers/missions.go:449` | `githubGet` deferred `resp.Body.Close()` before returning resp to caller — body closed before read | Remove defer; explicit close only in retry path | `fix/11257` |
+| `pkg/api/handlers/missions.go:532` | `defer resp.Body.Close()` inside retry loop accumulates unclosed bodies until `fetchWithCache` returns | Replace defer with immediate `resp.Body.Close()` after `io.ReadAll` | `fix/11257` |
+| `web/src/components/cards/Missions.tsx:101-155` | `t('cards.missionStatus.*')` dot syntax looks up key in `common` namespace (not `cards`); `t('common.sortBy.*')` adds redundant namespace prefix | `cards.X` → `cards:X`; `common.sortBy.X` → `sortBy.X` | `fix/11257` |
+| `pkg/fileutil/atomic_test.go:89` | Unused variable `srcDir` in `ErrorRename_ReadOnlyTargetDir` subtest — compile error | Remove unused variable | `fix/11256-11268` (already pushed by another agent) |
+
+### PR Actions
+
+| PR | Action | Result |
+|----|--------|--------|
+| #11273 (fix/11256-11268) | srcDir compile fix already applied; posted `/lgtm /approve` | CI now green except `attribute` policy check |
+| #11257 (fix/11257) | Added Missions.tsx i18n fix as second commit; pushed | CI re-running |
+
+### HIGH Comment Assessment
+
+- `preflightCheck-coverage.test.ts:443` — Reviewed current code; test clarified by PR #11235 (merged). The test name + inline comment explicitly document that context is NOT interpolated. No action needed.
+
+### Notes
+
+- 16 PRs in actionable list; all have ci=fail or conflict issues except #11273
+- PR#11272 (fix/11257-11260-11264) has `dco-signoff: no` + `CONFLICTING` — needs rebase with fresh DCO sign-off
+- Multiple overlapping fix branches address the same issues; reviewer consolidated to clean fix/11257 branch
