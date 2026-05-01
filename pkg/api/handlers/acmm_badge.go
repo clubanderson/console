@@ -147,7 +147,7 @@ func ACMMBadgeHandler(c *fiber.Ctx) error {
 			Color:         "blue",
 			CacheSeconds:  3600,
 		}
-		return serveBadge(c, badge, 3600)
+		return serveBadge(c, badge, badgeCacheControlMaxAge)
 	}
 
 	// Look up cache

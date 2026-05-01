@@ -446,7 +446,6 @@ func (h *MissionsHandler) githubGet(url string, clientToken string) (*http.Respo
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
 
 	// If auth failed (401/403) or got 404 with a token (raw.githubusercontent returns 404 for bad tokens),
 	// retry without auth — the target repo is public
@@ -455,7 +454,7 @@ func (h *MissionsHandler) githubGet(url string, clientToken string) (*http.Respo
 		// #6823 — Drain the body before closing so the underlying TCP
 		// connection is returned to the pool for reuse (HTTP/1.1 keep-alive).
 		io.Copy(io.Discard, resp.Body) //nolint:errcheck // best-effort drain
-		// resp.Body will be closed by defer above
+		resp.Body.Close()
 		retryReq, err := http.NewRequest("GET", url, nil)
 		if err != nil {
 			return nil, err
