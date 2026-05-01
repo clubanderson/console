@@ -69,23 +69,23 @@ export interface KagentiSummary {
 
 function getDemoAgents(): KagentiAgent[] {
   return [
-    { name: 'code-review-agent', namespace: 'kagenti-system', status: 'Running', replicas: 2, readyReplicas: 2, framework: 'langgraph', protocol: 'a2a', image: 'ghcr.io/kagenti/code-review:v0.3.1', cluster: 'prod-east', createdAt: '2025-01-15T10:00:00Z' },
-    { name: 'incident-responder', namespace: 'kagenti-system', status: 'Running', replicas: 1, readyReplicas: 1, framework: 'crewai', protocol: 'a2a', image: 'ghcr.io/kagenti/incident:v0.2.0', cluster: 'prod-east', createdAt: '2025-01-20T08:00:00Z' },
-    { name: 'security-scanner', namespace: 'kagenti-system', status: 'Running', replicas: 3, readyReplicas: 3, framework: 'langgraph', protocol: 'mcp', image: 'ghcr.io/kagenti/sec-scan:v1.0.0', cluster: 'prod-west', createdAt: '2025-01-10T12:00:00Z' },
-    { name: 'cost-optimizer', namespace: 'kagenti-system', status: 'Running', replicas: 1, readyReplicas: 1, framework: 'ag2', protocol: 'a2a', image: 'ghcr.io/kagenti/cost-opt:v0.1.5', cluster: 'prod-west', createdAt: '2025-01-22T14:00:00Z' },
-    { name: 'deploy-assistant', namespace: 'kagenti-system', status: 'Running', replicas: 2, readyReplicas: 2, framework: 'langgraph', protocol: 'a2a', image: 'ghcr.io/kagenti/deploy:v0.4.0', cluster: 'staging', createdAt: '2025-01-18T09:00:00Z' },
-    { name: 'log-analyzer', namespace: 'kagenti-system', status: 'Pending', replicas: 1, readyReplicas: 0, framework: 'crewai', protocol: 'mcp', image: 'ghcr.io/kagenti/log-analyzer:v0.1.0', cluster: 'staging', createdAt: '2025-01-25T16:00:00Z' },
-    { name: 'drift-detector', namespace: 'kagenti-ops', status: 'Running', replicas: 1, readyReplicas: 1, framework: 'langgraph', protocol: 'a2a', image: 'ghcr.io/kagenti/drift:v0.2.3', cluster: 'prod-east', createdAt: '2025-01-12T11:00:00Z' },
-    { name: 'compliance-checker', namespace: 'kagenti-ops', status: 'Running', replicas: 1, readyReplicas: 1, framework: 'ag2', protocol: 'mcp', image: 'ghcr.io/kagenti/compliance:v0.3.0', cluster: 'prod-west', createdAt: '2025-01-14T13:00:00Z' },
+    { name: 'code-review-agent', namespace: 'kagenti-system', status: 'running', replicas: 2, readyReplicas: 2, framework: 'langgraph', protocol: 'a2a', image: 'ghcr.io/kagenti/code-review:v0.3.1', cluster: 'prod-east', createdAt: '2025-01-15T10:00:00Z' },
+    { name: 'incident-responder', namespace: 'kagenti-system', status: 'running', replicas: 1, readyReplicas: 1, framework: 'crewai', protocol: 'a2a', image: 'ghcr.io/kagenti/incident:v0.2.0', cluster: 'prod-east', createdAt: '2025-01-20T08:00:00Z' },
+    { name: 'security-scanner', namespace: 'kagenti-system', status: 'running', replicas: 3, readyReplicas: 3, framework: 'langgraph', protocol: 'mcp', image: 'ghcr.io/kagenti/sec-scan:v1.0.0', cluster: 'prod-west', createdAt: '2025-01-10T12:00:00Z' },
+    { name: 'cost-optimizer', namespace: 'kagenti-system', status: 'running', replicas: 1, readyReplicas: 1, framework: 'ag2', protocol: 'a2a', image: 'ghcr.io/kagenti/cost-opt:v0.1.5', cluster: 'prod-west', createdAt: '2025-01-22T14:00:00Z' },
+    { name: 'deploy-assistant', namespace: 'kagenti-system', status: 'running', replicas: 2, readyReplicas: 2, framework: 'langgraph', protocol: 'a2a', image: 'ghcr.io/kagenti/deploy:v0.4.0', cluster: 'staging', createdAt: '2025-01-18T09:00:00Z' },
+    { name: 'log-analyzer', namespace: 'kagenti-system', status: 'pending', replicas: 1, readyReplicas: 0, framework: 'crewai', protocol: 'mcp', image: 'ghcr.io/kagenti/log-analyzer:v0.1.0', cluster: 'staging', createdAt: '2025-01-25T16:00:00Z' },
+    { name: 'drift-detector', namespace: 'kagenti-ops', status: 'running', replicas: 1, readyReplicas: 1, framework: 'langgraph', protocol: 'a2a', image: 'ghcr.io/kagenti/drift:v0.2.3', cluster: 'prod-east', createdAt: '2025-01-12T11:00:00Z' },
+    { name: 'compliance-checker', namespace: 'kagenti-ops', status: 'running', replicas: 1, readyReplicas: 1, framework: 'ag2', protocol: 'mcp', image: 'ghcr.io/kagenti/compliance:v0.3.0', cluster: 'prod-west', createdAt: '2025-01-14T13:00:00Z' },
   ]
 }
 
 function getDemoBuilds(): KagentiBuild[] {
   return [
-    { name: 'code-review-agent-build-7', namespace: 'kagenti-system', status: 'Succeeded', source: 'github.com/org/code-review', pipeline: 'kaniko', mode: 'dockerfile', cluster: 'prod-east', startTime: '2025-01-25T10:00:00Z', completionTime: '2025-01-25T10:05:30Z' },
-    { name: 'log-analyzer-build-1', namespace: 'kagenti-system', status: 'Building', source: 'github.com/org/log-analyzer', pipeline: 'buildpacks', mode: 'source', cluster: 'staging', startTime: '2025-01-25T15:30:00Z', completionTime: '' },
-    { name: 'security-scanner-build-12', namespace: 'kagenti-system', status: 'Succeeded', source: 'github.com/org/sec-scan', pipeline: 'kaniko', mode: 'dockerfile', cluster: 'prod-west', startTime: '2025-01-24T08:00:00Z', completionTime: '2025-01-24T08:04:12Z' },
-    { name: 'drift-detector-build-5', namespace: 'kagenti-ops', status: 'Failed', source: 'github.com/org/drift-detect', pipeline: 'kaniko', mode: 'dockerfile', cluster: 'prod-east', startTime: '2025-01-23T14:00:00Z', completionTime: '2025-01-23T14:02:45Z' },
+    { name: 'code-review-agent-build-7', namespace: 'kagenti-system', status: 'succeeded', source: 'github.com/org/code-review', pipeline: 'kaniko', mode: 'dockerfile', cluster: 'prod-east', startTime: '2025-01-25T10:00:00Z', completionTime: '2025-01-25T10:05:30Z' },
+    { name: 'log-analyzer-build-1', namespace: 'kagenti-system', status: 'building', source: 'github.com/org/log-analyzer', pipeline: 'buildpacks', mode: 'source', cluster: 'staging', startTime: '2025-01-25T15:30:00Z', completionTime: '' },
+    { name: 'security-scanner-build-12', namespace: 'kagenti-system', status: 'succeeded', source: 'github.com/org/sec-scan', pipeline: 'kaniko', mode: 'dockerfile', cluster: 'prod-west', startTime: '2025-01-24T08:00:00Z', completionTime: '2025-01-24T08:04:12Z' },
+    { name: 'drift-detector-build-5', namespace: 'kagenti-ops', status: 'failed', source: 'github.com/org/drift-detect', pipeline: 'kaniko', mode: 'dockerfile', cluster: 'prod-east', startTime: '2025-01-23T14:00:00Z', completionTime: '2025-01-23T14:02:45Z' },
   ]
 }
 

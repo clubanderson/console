@@ -621,7 +621,7 @@ describe('useDeployMissions', () => {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({
-            status: 'Failed', replicas: 1, readyReplicas: 0,
+            status: 'failed', replicas: 1, readyReplicas: 0,
           }),
         })
       }
