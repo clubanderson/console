@@ -478,7 +478,17 @@ else
 
     write_stage "frontend_build"
     echo -e "${GREEN}Building frontend...${NC}"
-    (cd web && npm run build)
+    if ! (cd web && npm run build); then
+        echo ""
+        echo -e "${RED}=== Frontend build failed ===${NC}"
+        echo -e "${YELLOW}This is often caused by an outdated checkout. Try:${NC}"
+        echo -e "  git pull origin main"
+        echo -e "  cd web && npm install"
+        echo -e "  cd .. && ./startup-oauth.sh"
+        echo ""
+        echo -e "${YELLOW}If the error mentions 'baseUrl' or TS5101, your tsconfig.json needs updating.${NC}"
+        exit 1
+    fi
     echo -e "${GREEN}Frontend built successfully${NC}"
 
     # Start backend on port 8081 — watchdog on 8080 proxies to it
