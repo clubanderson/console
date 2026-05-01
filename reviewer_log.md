@@ -993,3 +993,37 @@ Fix: **PR #11310** (`fix/playwright-duplicate-globalteardown`) — remove the fi
 - #11306: CI failing
 - #11308: CI pending, external author
 - #11309: CI pending
+
+## Pass 86 — 2026-05-01T17:47 UTC
+
+### Trigger
+KICK — nightlyPlaywright=RED (same root cause as pass 85, fix in PR #11310 awaiting merge). 177 unaddressed Copilot comments (5 HIGH, MEDIUM now includes PR #11308 test issues). GA4 nominal.
+
+### RED Analysis
+
+**nightlyPlaywright=RED**
+Still awaiting merge of PR #11310. Scanner owns Playwright; no new action.
+
+### Copilot Comments Assessment
+
+**HIGH comments (PRs #11254, #11269, #11271, #11279, #11250)** — `defer resp.Body.Close()` in missions.go:
+- Re-verified: no change since pass 85. These are stale comments; current main is correct. No action.
+
+**MEDIUM comments (PR #11308)** — `env.App.Test(req)` error return ignored in stig_test.go and supply_chain_test.go:
+- **Fixed**: Created branch `fix/pr11308-test-error-handling` from upstream/main with both test files corrected.
+  - `stig_test.go`: all 3 `resp, _ :=` → `resp, err := env.App.Test(req); require.NoError(t, err)`
+  - `supply_chain_test.go`: all 10 `resp, _ :=` → `resp, err := env.App.Test(req); require.NoError(t, err)`
+- Also included `require` import in both files.
+- Pushed to `origin/fix/pr11308-test-error-handling`.
+
+### PR Activity
+
+| PR | Action | Result |
+|----|--------|--------|
+| fix/pr11308-test-error-handling | Created & pushed | Addresses MEDIUM Copilot comments on #11308 |
+
+### No Merge-Eligible PRs
+- gh auth broken (GH_TOKEN/HIVE_GITHUB_TOKEN both expired) — cannot query CI status or merge.
+- PR #11310: Awaiting CI + maintainer review
+- PR #11308: CI pending, external author
+- PR #11309: CI status unknown
