@@ -482,11 +482,11 @@ export function useDeployMissions() {
                       let status: DeployClusterStatus['status'] = 'applying'
                       // Zero-replica workloads are valid (e.g. scale-to-zero) — treat
                       // readyReplicas >= replicas as success even when both are zero.
-                      if (String(match.status) === 'running'
+                      if (String(match.status).toLowerCase() === 'running'
                           && readyReplicas >= replicas
                           && agentUpdated >= replicas) {
                         status = 'running'
-                      } else if (String(match.status) === 'failed' || String(match.status) === 'Failed') {
+                      } else if (String(match.status).toLowerCase() === 'failed') {
                         status = 'failed'
                       }
                       // Fetch K8s events via kubectlProxy

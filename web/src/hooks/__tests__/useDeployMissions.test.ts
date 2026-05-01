@@ -581,7 +581,7 @@ describe('useDeployMissions', () => {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({
-            status: 'Running', replicas: 3, readyReplicas: 3,
+            status: 'running', replicas: 3, readyReplicas: 3,
           }),
         })
       }
@@ -726,7 +726,7 @@ describe('useDeployMissions', () => {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({
-            status: 'Running', replicas: 1, readyReplicas: 1,
+            status: 'running', replicas: 1, readyReplicas: 1,
           }),
         })
       }
@@ -881,7 +881,7 @@ describe('useDeployMissions', () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({
-        status: 'Running', replicas: 1, readyReplicas: 1,
+        status: 'running', replicas: 1, readyReplicas: 1,
       }),
     })
 
@@ -913,7 +913,7 @@ describe('useDeployMissions', () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({
-        status: 'Running', replicas: 1, readyReplicas: 1,
+        status: 'running', replicas: 1, readyReplicas: 1,
       }),
     })
 
@@ -1181,7 +1181,7 @@ describe('useDeployMissions', () => {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({
-            status: 'Running', replicas: 1, readyReplicas: 1,
+            status: 'running', replicas: 1, readyReplicas: 1,
           }),
         })
       }

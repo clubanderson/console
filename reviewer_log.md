@@ -1,5 +1,47 @@
 # Reviewer Log
 
+## Pass 95 — 2026-05-01T11:18 UTC
+
+### Trigger
+KICK — nightlyPlaywright=RED. 58 unaddressed Copilot comments (1 HIGH). GA4 nominal.
+
+### RED Analysis
+
+**nightlyPlaywright=RED** — nightly run at 10:15 UTC shows 100% pass (32/32). RED indicator was stale. Current issue is that `origin/main` had a Go compilation error in `pkg/api/handlers/acmm_badge.go:150` (`3600` int literal passed to `string` param of `serveBadge()`). Fixed directly on main.
+
+**PR #11243** — rebased onto current origin/main (3 commits now based on pass 94 tip). Force-pushed to origin. CI re-running.
+
+### Source File Fixes
+
+| File | Issue | Fix |
+|------|-------|-----|
+| `pkg/api/handlers/acmm_badge.go:150` | `serveBadge(c, badge, 3600)` — int literal where string expected → Go compile error | `badgeCacheControlMaxAge` |
+| `web/src/hooks/__tests__/useDeployMissions.test.ts` (lines 584,729,884,916,1184) | Mock status `'Running'` (titlecase) mismatches hook's `=== 'running'` check → tests verify wrong path | Lowercase `'running'` |
+| `web/src/hooks/useDeployMissions.ts:485,489` | `=== 'running'` and `=== 'failed' \|\| === 'Failed'` — inconsistent case handling | `.toLowerCase()` on both comparisons |
+
+### HIGH Copilot Comments
+
+- `preflightCheck-coverage.test.ts:443` (#11192) — already addressed by PR #11235 (merged). Current test file has correct assertions and clarifying comment.
+
+### Other MEDIUM Comments Checked
+
+- `useClusterContext-coverage.test.ts:63` (#11192) — `beforeEach` resetting all mocks is already present. No fix needed.
+- `preflightCheck-coverage.test.ts:284,396,403,410` (#11192) — assertions already strengthened by PR #11235. No fix needed.
+- `GitHubActivity.tsx:251,253,299` (#11227) — already fixed (committed in pass 91).
+- Go handler goroutine issues (#11207) — `StopEviction()`, `operatorEvictDone`, `githubProxyEvictDone` channels are all present in current code. No leak.
+- `card-loading-compliance.spec.ts:930,968,980,990,1007` (#11215) — E2E spec empty destructure lint → scanner-owned.
+- Dashboard.spec.ts comments (#11230,#11231) — E2E spec logic → scanner-owned.
+- `CardChat.spec.ts:102` (#11229) — E2E spec unused var → scanner-owned.
+
+### Open PRs
+
+| PR | Status | Action |
+|----|--------|--------|
+| #11243 | CI re-running after rebase | Monitor; merge when green |
+| #11244 | DCO no, needs-rebase | Needs sign-off + rebase on origin/main |
+
+---
+
 ## Pass 94 — 2026-05-01T11:15–11:30 UTC
 
 ### Trigger
