@@ -117,6 +117,9 @@ func getGitHubProxyLimiter(userID string) *rate.Limiter {
 // (no requests for >10 minutes) to prevent unbounded map growth.
 // Exits when ctx is cancelled.
 func startGitHubProxyLimiterEvictor(ctx context.Context) {
+	if ctx == nil {
+		return
+	}
 	ticker := time.NewTicker(githubProxyEvictionInterval)
 	defer ticker.Stop()
 
@@ -140,7 +143,9 @@ func startGitHubProxyLimiterEvictor(ctx context.Context) {
 // StopGitHubProxyLimiterEvictor signals the background evictor goroutine to exit.
 // Safe to call multiple times. Intended for server shutdown and tests.
 func StopGitHubProxyLimiterEvictor() {
-	githubProxyEvictCancel()
+	if githubProxyEvictCancel != nil {
+		githubProxyEvictCancel()
+	}
 }
 
 // allowedGitHubPrefixes restricts which GitHub API paths can be proxied.
