@@ -33,7 +33,7 @@ export function FeatureRequestModal({ isOpen, onClose, initialTab, initialReques
   const { showToast } = useToast()
   const currentGitHubLogin = user?.github_login || ''
   const { createRequest, isSubmitting, requests, isLoading: requestsLoading, isRefreshing: requestsRefreshing, refresh: refreshRequests, requestUpdate, closeRequest, isDemoMode: isInDemoMode } = useFeatureRequests(currentGitHubLogin)
-  const { notifications, isRefreshing: notificationsRefreshing, refresh: refreshNotifications, getUnreadCountForRequest, markRequestNotificationsAsRead } = useNotifications()
+  const { isRefreshing: notificationsRefreshing, refresh: refreshNotifications, getUnreadCountForRequest, markRequestNotificationsAsRead } = useNotifications()
   const { githubRewards, githubPoints, refreshGitHubRewards } = useRewards()
   const { drafts, draftCount, recentlyDeletedDrafts, recentlyDeletedCount, saveDraft, deleteDraft, permanentlyDeleteDraft, restoreDeletedDraft, clearAllDrafts, emptyRecentlyDeleted } = useFeedbackDrafts()
   const [isGitHubRefreshing, setIsGitHubRefreshing] = useState(false)
@@ -42,9 +42,6 @@ export function FeatureRequestModal({ isOpen, onClose, initialTab, initialReques
   const [showClearAllDrafts, setShowClearAllDrafts] = useState(false)
   const isRefreshing = requestsRefreshing || notificationsRefreshing
 
-  // Exclude notifications for closed requests from the unread count
-  const closedRequestIds = new Set((requests || []).filter(r => r.status === 'closed').map(r => r.id))
-  const activeNotifications = (notifications || []).filter(n => !closedRequestIds.has(n.feature_request_id || ''))
   // User can't perform actions if not authenticated or if using demo token
   const canPerformActions = isAuthenticated && token !== DEMO_TOKEN_VALUE
   const [activeTab, setActiveTab] = useState<TabType>(initialTab || 'submit')
