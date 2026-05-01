@@ -1,5 +1,93 @@
 # Reviewer Log
 
+## Pass 93 — 2026-05-01T10:58–11:15 UTC
+
+### Trigger
+KICK — nightlyPlaywright=RED. 58 unaddressed Copilot comments (1 HIGH). GA4 nominal.
+
+### RED Analysis
+
+**nightlyPlaywright=RED** — playwright-nightly run #25209161348 (09:10 UTC) failed with `ReferenceError: mockApiFallback is not defined` in `Dashboard.spec.ts`. Root cause is a **timing race**: PR #11231 (merged 08:53 UTC) removed the `mockApiFallback` import, and PR #11238 (merged 09:43 UTC) re-added it — but the nightly ran at 09:10 UTC, 33 minutes *after* the break and 33 minutes *before* the fix. No source-file regression exists in current `upstream/main`; the import is correct. **Next nightly run will clear.** No additional source fix required.
+
+**Pass 92 (branch fix/nightly-red-kagent-jaeger-livemocks / PR #11243)** addressed the underlying React error #31 and `TypeError` crashes (kagent-crds flat struct, jaeger metrics guard, liveMocks shape fixes) that were also contributing to E2E failures. PR #11243 is open; CI not triggered (human-authored).
+
+### HIGH Copilot Comments
+
+| Comment ID | PR | File | Status |
+|------------|-----|------|--------|
+| #3171704807 | #11192 | preflightCheck-coverage.test.ts:443 | ✅ Fixed by PR #11235 (merged, in upstream/main). GitHub thread not resolved. No further action. |
+
+All other HIGH comments remain addressed from passes 78–92.
+
+### Merge-Eligible PRs
+None — `merge-eligible.json` count=0.
+
+### Outstanding
+- PR #11243 (kagent/jaeger source fixes): open, CI not triggered, human-authored. Scanner to monitor.
+- PR #11242 (quick-fixes bundle): open, CI failing, human-authored.
+- nightlyPlaywright: expect GREEN on next scheduled run (07:18 UTC 2026-05-02).
+
+---
+
+## Pass 92 — 2026-05-01T10:47–10:57 UTC
+
+### Trigger
+KICK — nightly=RED, nightlyPlaywright=RED (carried from pass 91). 66 unaddressed Copilot comments. GA4 nominal.
+
+### RED Analysis
+
+**nightlyPlaywright=RED** — root cause confirmed as `ReferenceError: mockApiFallback is not defined` in `Dashboard.spec.ts`. PR #11238 (merged pass 90) fixed this; next nightly should clear.
+
+**Playwright E2E failures** (run #25208708135, 08:53 UTC):
+- `[DynamicCard:KagentAgentFleet] Render error: React error #31` — liveMocks `kagent-crds/*` entries had raw K8s CRD shapes (`status: { phase: 'Ready' }` object) instead of flat backend shapes. `StatusBadge` tried to render object as JSX text → crash.
+- `TypeError: Cannot read properties of undefined (reading 'servicesCount')` — liveMocks `jaeger-status` stub missing `metrics` sub-object; `jaeger_status/index.tsx` accessed `data.metrics.servicesCount` without guard.
+
+**Go backend field mismatch** (production bug): `kagentCRDAgent` struct had `Type json:"type"` + `Ready/Accepted bool` but TypeScript `KagentCRDAgent` interface expects `agentType` string + `status` string.
+
+### Actions
+
+**PR #11243** — "🐛 fix kagent-crds agent struct, jaeger metrics guard, liveMocks shapes":
+- `pkg/agent/kagent_crds.go`: rename `Type→AgentType` (`json:"agentType"`), replace `Ready/Accepted bool` with `Status string json:"status"` computed from conditions. Add `Status` to tool/model/memory structs via `extractReadyStatus()` helper.
+- `web/src/components/cards/jaeger_status/index.tsx`: optional-chain `data.metrics?.servicesCount` in `hasAnyData`; destructure fallback `const metrics` so all render-time accesses are safe.
+- `web/e2e/mocks/liveMocks.ts`: fix all four `kagent-crds/*` entries to flat backend shapes; fix `jaeger-status` stub to include full `JaegerStatus` object with `metrics`, `collectors`, `query`, `version`.
+
+Build ✅ Lint ✅
+
+### Copilot Comments Triage
+
+| Severity | PR | File | Disposition |
+|----------|----|------|-------------|
+| MEDIUM | #11232 | liveMocks.ts:32 | Fixed in PR #11243 (kagent-crds + jaeger shapes) |
+| MEDIUM | #11232 | PipelineFilterBar.tsx:133 | Source intentional (demo mode gate); scanner should update Playwright test |
+| MEDIUM | #11230 | Dashboard.spec.ts (×6) | All Playwright test-logic issues — scanner-owned |
+
+### Open PRs
+- #11243 (`fix/nightly-red-kagent-jaeger-livemocks`) — CI not triggered; human-authored (clubanderson)
+
+---
+
+## Pass 91 — 2026-05-01T10:10–10:28 UTC
+
+### Trigger
+KICK — nightly=RED, nightlyPlaywright=RED. 58 unaddressed Copilot comments.
+
+### RED Analysis
+
+**nightly=GREEN** — run #25209161349 completed at 10:15 UTC with 32/32 suites passing. Issue #11241 filed by automation reflects the *previous* failed run; actual state is GREEN.
+
+**nightlyPlaywright=RED** — confirmed still failing (run #25209161348, 09:10 UTC). Root cause is missing `mockApiFallback` import in `Dashboard.spec.ts`. PR #11238 (merged pass 90, 09:43 UTC) is the fix — but it landed *after* the 09:10 run. Next nightly will clear.
+
+### Actions
+
+**GitHubActivity AbortSignal fix**: `463ad733f` — added `AbortSignal.timeout(FETCH_EXTERNAL_TIMEOUT_MS)` to the remaining unguarded `Promise.all` PR/issues fetches in `GitHubActivity.tsx`. Addresses 2× MEDIUM comments on PR #11227.
+
+**PR #11235 merged** — "fix(test): clarify MISSING_CREDENTIALS remediation test name and intent" — merged to upstream/main. Addresses HIGH comment on PR #11192:443.
+
+### Merge-Eligible PRs
+None.
+
+---
+
 ## Pass 90 — 2026-05-01T09:38–09:55 UTC
 
 ### Trigger
