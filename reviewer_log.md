@@ -1,5 +1,61 @@
 # Reviewer Log
 
+## Pass 96 — 2026-05-01T11:35 UTC
+
+### Trigger
+KICK — focused health pass (5 checks). No CLAUDE.md re-read per policy.
+
+### 1. Build and Deploy KC — last 5 runs ✅
+
+| Run | Branch | Conclusion |
+|-----|--------|------------|
+| 25212894552 | main (in progress) | running — PR #11245 merge |
+| 25212684089 | feature/atomic-file-tests | ✅ success |
+| 25212522448 | main | ✅ success |
+| 25212507163 | fix/nightly-red-kagent-jaeger-livemocks | ✅ success |
+| 25212005864 | fix/quick-fixes-abort-signal | ✅ success |
+
+One older failure (25211744525) was pre-rebase of PR#11243 — already resolved. **GREEN.**
+
+### 2. Nightly test suite (#11241) ✅
+
+32/32 suites passing (100%) as of 2026-05-01T10:15 UTC. Stable since 2026-04-27. **GREEN.**
+
+### 3. Brew formula freshness ⚠️
+
+| Formula | Repo | Current version | Latest stable | Status |
+|---------|------|-----------------|---------------|--------|
+| `kubestellar-console.rb` | kubestellar/homebrew-tap | `0.3.23` | `v0.3.23` | ✅ current |
+| `kc-agent.rb` | kubestellar/homebrew-tap | `0.3.24-nightly.20260501` | `v0.3.23` | 🔴 **nightly in stable formula** |
+
+`kc-agent.rb` is pinned to a pre-release nightly (`0.3.24-nightly.20260501`). The stable release `v0.3.23` ships `kc-agent_0.3.23_*` assets. Users installing via `brew install` receive a pre-release binary. Formula should be bumped to `v0.3.23`.
+
+### 4. Helm chart version ✅
+
+`deploy/helm/kubestellar-console/Chart.yaml`: `version: 0.0.0`, `appVersion: "latest"` — intentionally generic template; versions injected at release time via GoReleaser. **No action needed.**
+
+### 5. Coverage badge vs 91% threshold 🔴
+
+Latest hourly run (25212522450, 2026-05-01T11:21):
+
+| Metric | Value | Threshold |
+|--------|-------|-----------|
+| Lines | **90.62%** | 91% | ← **BELOW** |
+| Statements | 89.26% | — |
+| Branches | 79.58% | — |
+| Functions | 86.86% | — |
+
+Lines coverage is 0.38 pp below the 91% gate. The hourly workflow itself reports success (reporting-only), but the PR-level `coverage-gate` will fail for any `web/src` PR that doesn't add sufficient tests. Recent test additions (PR#11245: AtomicWriteFile tests, merged today) may close the gap — next hourly run will confirm.
+
+### Actions
+
+| Finding | Severity | Action |
+|---------|----------|--------|
+| `kc-agent.rb` formula on nightly | P2 | File issue on kubestellar/homebrew-tap to bump to v0.3.23 |
+| Coverage at 90.62% (<91%) | P2 | Monitor next hourly run post-PR#11245; file issue if still below |
+
+---
+
 ## Pass 95 — 2026-05-01T11:18 UTC
 
 ### Trigger
