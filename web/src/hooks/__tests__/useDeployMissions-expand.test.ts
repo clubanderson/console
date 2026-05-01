@@ -288,7 +288,7 @@ describe('useDeployMissions — expanded edge cases', () => {
       }
       if (url.includes('/deploy-status/')) {
         return Promise.resolve(new Response(JSON.stringify({
-          status: 'Running',
+          status: 'running',
           replicas: 2,
           readyReplicas: 2,
         }), { status: 200 }))

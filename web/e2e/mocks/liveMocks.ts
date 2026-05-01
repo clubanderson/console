@@ -540,7 +540,7 @@ export async function setupLiveMocks(page: Page, options?: LiveMockOptions): Pro
     cronjobs: { cronjobs: [{ name: 'daily-backup', namespace: 'default', cluster: MOCK_CLUSTER, schedule: '0 2 * * *', lastSchedule: '2026-01-15T02:00:00Z', active: 0 }] },
     'gpu-nodes': { nodes: [{ name: 'gpu-node-1', cluster: MOCK_CLUSTER, gpus: [{ model: 'A100', memory: '80Gi', index: 0 }], labels: {}, allocatable: {}, capacity: {} }] },
     clusters: { clusters: [{ name: MOCK_CLUSTER, reachable: true, status: 'Ready', provider: 'kind', version: '1.28.0' }] },
-    'cluster-health': { status: 'ok', healthy: true, cluster: MOCK_CLUSTER, nodeCount: 3, readyNodes: 3, podCount: 12, cpuCores: 8, memoryGB: 16, metricsAvailable: true },
+    'cluster-health': { status: 'ok', healthy: true, reachable: true, cluster: MOCK_CLUSTER, nodeCount: 3, readyNodes: 3, podCount: 12, cpuCores: 8, memoryGB: 16, metricsAvailable: true },
     status: { status: 'ok', version: 'e2e-test', clusters: 1, hasClaude: false },
     namespaces: { namespaces: MOCK_DATA.namespaces.namespaces },
     'nvidia-operators': { operators: [] },
@@ -604,7 +604,7 @@ export async function setupLiveMocks(page: Page, options?: LiveMockOptions): Pro
 
     // Agent root health endpoint — only match /health (single segment) or /health?*
     // Nested paths like /clusters/<name>/health are served via AGENT_ENDPOINT_DATA below.
-    if ((pathParts.length === 1 && pathParts[0] === 'health') || url.includes('/health?')) {
+    if (pathParts.length === 1 && pathParts[0] === 'health') {
       return route.fulfill({
         status: 200,
         contentType: 'application/json',

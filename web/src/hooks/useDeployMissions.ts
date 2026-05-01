@@ -614,9 +614,9 @@ export function useDeployMissions() {
                   : safeReplicaCount(restUpdatedRaw)
                 // Zero-replica workloads are valid — treat readyReplicas >= replicas
                 // as success even when both are zero.
-                if (data.status === 'Running' && restReady >= restReplicas && restUpdated >= restReplicas) {
+                if (String(data.status).toLowerCase() === 'running' && restReady >= restReplicas && restUpdated >= restReplicas) {
                   status = 'running'
-                } else if (data.status === 'Failed') {
+                } else if (String(data.status).toLowerCase() === 'failed') {
                   // #5956 — Surface the failure reason in the mission logs
                   // instead of leaving the mission in a generic degraded state.
                   status = 'failed'
