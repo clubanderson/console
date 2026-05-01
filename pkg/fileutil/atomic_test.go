@@ -84,13 +84,8 @@ func TestAtomicWriteFile(t *testing.T) {
 			t.Skip("chmod-based read-only directories behave differently on Windows")
 		}
 
-		// Create a writable source dir (for temp file creation) and a
-		// read-only target dir (to make the cross-device rename fail).
-		srcDir := t.TempDir()
+		// Create a read-only target dir to make temp file creation fail.
 		roDir := t.TempDir()
-
-		// Write a file into srcDir so we can prove the temp is created
-		// there; the rename into roDir should fail.
 		if err := os.Chmod(roDir, 0555); err != nil {
 			t.Fatalf("chmod: %v", err)
 		}
