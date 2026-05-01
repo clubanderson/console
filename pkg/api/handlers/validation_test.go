@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -46,7 +47,7 @@ func TestIsValidK8sName(t *testing.T) {
 		{"invalid start", "-nginx", false},
 		{"invalid end", "nginx.", false},
 		{"special chars", "my_app", false},
-		{"too long", string(make([]byte, 254)), false},
+		{"too long", strings.Repeat("a", 254), false},
 	}
 
 	for _, tt := range tests {
