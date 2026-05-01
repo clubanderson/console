@@ -304,6 +304,7 @@ describe('runToolPreflightCheck', () => {
 
     const result = await runToolPreflightCheck('http://localhost:8585', ['kubectl', 'helm'])
     expect(result.ok).toBe(true)
+    expect(result.error).toBeUndefined()
     expect(result.tools.length).toBeGreaterThan(0)
   })
 
@@ -358,6 +359,8 @@ describe('runToolPreflightCheck', () => {
 
     const result = await runToolPreflightCheck('http://localhost:8585', ['kubectl', 'helm'])
     expect(result.ok).toBe(true)
+    expect(result.error).toBeUndefined()
+    expect(result.tools.length).toBeGreaterThan(0)
   })
 
   it('handles response with unexpected shape', async () => {
@@ -370,6 +373,7 @@ describe('runToolPreflightCheck', () => {
     // kubectl is always added as installed, so only kubectl is fine
     const result = await runToolPreflightCheck('http://localhost:8585', ['kubectl'])
     expect(result.ok).toBe(true)
+    expect(result.error).toBeUndefined()
   })
 
   it('handles non-Error thrown exceptions', async () => {
@@ -377,6 +381,7 @@ describe('runToolPreflightCheck', () => {
 
     const result = await runToolPreflightCheck('http://localhost:8585', ['kubectl'])
     expect(result.ok).toBe(false)
+    expect(result.error?.code).toBe('UNKNOWN_EXECUTION_FAILURE')
     expect(result.error?.message).toContain('string error')
   })
 })
@@ -394,6 +399,7 @@ describe('runPreflightCheck — catch branch coverage', () => {
     expect(result.ok).toBe(false)
     // Falls through to String(err) path → '[object Object]' classified as UNKNOWN_EXECUTION_FAILURE
     expect(result.error?.code).toBe('UNKNOWN_EXECUTION_FAILURE')
+    expect(result.error?.message).toBeDefined()
   })
 
   it('handles non-Error thrown value (string)', async () => {
@@ -421,6 +427,7 @@ describe('runPreflightCheck — catch branch coverage', () => {
     const result = await runPreflightCheck(exec)
     expect(result.ok).toBe(false)
     expect(result.error?.code).toBe('CLUSTER_UNREACHABLE')
+    expect(result.error?.message).toBeDefined()
   })
 
   it('passes context through in error results from exceptions', async () => {
@@ -429,6 +436,8 @@ describe('runPreflightCheck — catch branch coverage', () => {
     const result = await runPreflightCheck(exec, 'my-context')
     expect(result.ok).toBe(false)
     expect(result.context).toBe('my-context')
+    expect(result.error?.code).toBeDefined()
+    expect(result.error?.message).toBeDefined()
   })
 })
 

@@ -71,7 +71,8 @@ func TestGitOps_ListHelmHistory_Validation_InvalidClusterName(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
 	assert.Contains(t, string(body), "cluster contains invalid character")
 }
 
