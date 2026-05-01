@@ -3,6 +3,7 @@ import {
   Bug, Sparkles, Loader2, ExternalLink, Bell,
   Check, Eye, Pencil, Settings, Maximize2,
   ImagePlus, Trash2, Copy, AlertTriangle, Monitor, BookOpen, FileText, Save, Lock,
+  Film,
 } from 'lucide-react'
 import { Github } from '@/lib/icons'
 import { Button } from '../ui/Button'
@@ -25,6 +26,8 @@ import {
   MIN_DESCRIPTION_LENGTH,
   MIN_DESCRIPTION_WORDS,
   MAX_TITLE_LENGTH,
+  MAX_VIDEO_SIZE_BYTES,
+  ACCEPTED_MEDIA_TYPES,
 } from './FeatureRequestTypes'
 
 // ── Success View (shown after successful submission) ──
@@ -72,13 +75,13 @@ export function SuccessView({ success, screenshots, onViewUpdates }: SuccessView
         </button>
       </div>
 
-      {/* Screenshot status */}
+      {/* Attachment status */}
       {screenshots.length > 0 && (success.screenshotsUploaded ?? 0) > 0 && (
         <div className="mt-4 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
           <p className="text-xs text-green-400 font-medium">
             {(success.screenshotsUploaded ?? 0) === 1
-              ? 'Screenshot attached to the issue. It will render as an image shortly.'
-              : `${success.screenshotsUploaded} screenshots attached to the issue. They will render as images shortly.`}
+              ? 'Attachment uploaded to the issue successfully.'
+              : `${success.screenshotsUploaded} attachments uploaded to the issue successfully.`}
           </p>
         </div>
       )}
@@ -86,8 +89,8 @@ export function SuccessView({ success, screenshots, onViewUpdates }: SuccessView
         <div className="mt-4 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
           <p className="text-xs text-yellow-400 font-medium">
             {success.screenshotsFailed === 1
-              ? 'Screenshot could not be attached — invalid image format.'
-              : `${success.screenshotsFailed} screenshots could not be attached — invalid image format.`}
+              ? 'Attachment could not be uploaded — unsupported format or too large.'
+              : `${success.screenshotsFailed} attachments could not be uploaded — unsupported format or too large.`}
           </p>
         </div>
       )}
@@ -187,11 +190,11 @@ export function SubmitForm({
       if (file) {
         const reader = new FileReader()
         reader.onload = (ev) => {
-          setScreenshots(prev => [...prev, { file, preview: ev.target?.result as string }])
+          setScreenshots(prev => [...prev, { file, preview: ev.target?.result as string, mediaType: 'image' }])
         }
         reader.onerror = (err) => {
-          console.error('[Screenshot] Paste FileReader failed:', err)
-          showToast('Failed to read pasted screenshot. Try attaching the image instead.', 'error')
+          console.error('[Attachment] Paste FileReader failed:', err)
+          showToast('Failed to read pasted image. Try attaching the file instead.', 'error')
         }
         reader.readAsDataURL(file)
       }
@@ -201,15 +204,26 @@ export function SubmitForm({
 
   const handleScreenshotFiles = (files: FileList | null) => {
     if (!files) return
-    const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'))
-    imageFiles.forEach(file => {
+    const mediaFiles = Array.from(files).filter(f =>
+      f.type.startsWith('image/') || f.type.startsWith('video/')
+    )
+    mediaFiles.forEach(file => {
+      const isVideo = file.type.startsWith('video/')
+      if (isVideo && file.size > MAX_VIDEO_SIZE_BYTES) {
+        showToast(`Video "${file.name}" exceeds 10 MB limit. Please use a shorter or lower-resolution recording.`, 'error')
+        return
+      }
       const reader = new FileReader()
       reader.onload = (ev) => {
-        setScreenshots(prev => [...prev, { file, preview: ev.target?.result as string }])
+        setScreenshots(prev => [...prev, {
+          file,
+          preview: ev.target?.result as string,
+          mediaType: isVideo ? 'video' : 'image',
+        }])
       }
       reader.onerror = (err) => {
-        console.error(`[Screenshot] FileReader failed for ${file.name}:`, err)
-        showToast(`Failed to read screenshot "${file.name}". Try a different image.`, 'error')
+        console.error(`[Attachment] FileReader failed for ${file.name}:`, err)
+        showToast(`Failed to read file "${file.name}". Try a different file.`, 'error')
       }
       reader.readAsDataURL(file)
     })
@@ -275,8 +289,13 @@ export function SubmitForm({
 
     const screenshotDataURIs: string[] = []
     for (const s of screenshots) {
-      const compressed = await compressScreenshot(s.preview)
-      if (compressed) screenshotDataURIs.push(compressed)
+      if (s.mediaType === 'video') {
+        // Videos are passed through without compression
+        screenshotDataURIs.push(s.preview)
+      } else {
+        const compressed = await compressScreenshot(s.preview)
+        if (compressed) screenshotDataURIs.push(compressed)
+      }
     }
 
     try {
@@ -575,10 +594,10 @@ export function SubmitForm({
           </p>
         </div>
 
-        {/* Screenshot Upload */}
+        {/* Attachment Upload (images & videos) */}
         <div>
           <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-            Screenshots <span className="font-normal">(optional)</span>
+            Attachments <span className="font-normal">(optional — images &amp; videos)</span>
           </label>
           <div
             onDragOver={inputsDisabled ? undefined : handleScreenshotDragOver}
@@ -594,12 +613,16 @@ export function SubmitForm({
                   : 'border-border hover:border-muted-foreground'}`
             }`}
           >
-            <ImagePlus className="w-5 h-5 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground text-center">Drop screenshots here or click to browse</span>
+            <div className="flex items-center gap-2">
+              <ImagePlus className="w-5 h-5 text-muted-foreground" />
+              <Film className="w-4 h-4 text-muted-foreground" />
+            </div>
+            <span className="text-xs text-muted-foreground text-center">Drop images or videos here, or click to browse</span>
+            <span className="text-2xs text-muted-foreground/70">Videos: mp4, webm, mov (max 10 MB)</span>
             <input
               ref={screenshotInputRef}
               type="file"
-              accept="image/*"
+              accept={ACCEPTED_MEDIA_TYPES}
               multiple
               disabled={inputsDisabled}
               onChange={e => handleScreenshotFiles(e.target.files)}
@@ -610,34 +633,48 @@ export function SubmitForm({
             <div className="mt-2 flex flex-wrap gap-2">
               {screenshots.map((s, i) => (
                 <div key={i} className="relative group w-20 h-20 shrink-0">
-                  <img
-                    src={s.preview}
-                    alt={`Screenshot ${i + 1}`}
-                    className="w-20 h-20 object-cover rounded-lg border border-border"
-                  />
+                  {s.mediaType === 'video' ? (
+                    <div className="w-20 h-20 rounded-lg border border-border bg-black flex items-center justify-center overflow-hidden">
+                      <video
+                        src={s.preview}
+                        className="w-full h-full object-cover"
+                        muted
+                        playsInline
+                      />
+                      <Film className="absolute w-5 h-5 text-white/80 drop-shadow-md" />
+                    </div>
+                  ) : (
+                    <img
+                      src={s.preview}
+                      alt={`Attachment ${i + 1}`}
+                      className="w-20 h-20 object-cover rounded-lg border border-border"
+                    />
+                  )}
                   <div className="absolute inset-0 flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 bg-black/60 rounded-lg transition-opacity">
                     <button
                       type="button"
                       onClick={e => { e.stopPropagation(); setPreviewImageSrc(s.preview) }}
                       className="p-1.5 rounded-md bg-secondary/80 text-foreground hover:bg-secondary transition-colors"
-                      title="Preview screenshot"
-                      aria-label="Preview screenshot"
+                      title={s.mediaType === 'video' ? 'Preview video' : 'Preview image'}
+                      aria-label={s.mediaType === 'video' ? 'Preview video' : 'Preview image'}
                     >
                       <Eye className="w-3.5 h-3.5" />
                     </button>
-                    <button
-                      type="button"
-                      onClick={e => { e.stopPropagation(); void copyScreenshotToClipboard(s.preview, i) }}
-                      className="p-1.5 rounded-md bg-secondary/80 text-foreground hover:bg-secondary transition-colors"
-                      title="Copy to clipboard"
-                    >
-                      {copiedIndex === i ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
-                    </button>
+                    {s.mediaType !== 'video' && (
+                      <button
+                        type="button"
+                        onClick={e => { e.stopPropagation(); void copyScreenshotToClipboard(s.preview, i) }}
+                        className="p-1.5 rounded-md bg-secondary/80 text-foreground hover:bg-secondary transition-colors"
+                        title="Copy to clipboard"
+                      >
+                        {copiedIndex === i ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={e => { e.stopPropagation(); removeScreenshot(i) }}
                       className="p-1.5 rounded-md bg-secondary/80 text-red-400 hover:bg-red-500/20 transition-colors"
-                      title="Remove screenshot"
+                      title="Remove attachment"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -648,7 +685,7 @@ export function SubmitForm({
           )}
           {screenshots.length > 0 && (
             <p className="text-2xs text-muted-foreground mt-1">
-              Screenshots will be uploaded and embedded directly in the GitHub issue.
+              Attachments will be uploaded and embedded directly in the GitHub issue.
             </p>
           )}
         </div>

@@ -265,6 +265,7 @@ interface ScreenshotPreviewOverlayProps {
 
 export function ScreenshotPreviewOverlay({ src, onClose }: ScreenshotPreviewOverlayProps) {
   const overlayRef = useRef<HTMLDivElement>(null)
+  const isVideo = src.startsWith('data:video/')
 
   // Auto-focus the overlay so it can receive keyboard events (e.g. Escape)
   useEffect(() => {
@@ -288,29 +289,37 @@ export function ScreenshotPreviewOverlay({ src, onClose }: ScreenshotPreviewOver
       }}
       role="dialog"
       aria-modal="true"
-      aria-label="Screenshot preview"
+      aria-label={isVideo ? 'Video preview' : 'Screenshot preview'}
     >
       <div className="relative max-w-[90vw] max-h-[85vh] bg-background border border-border rounded-xl shadow-2xl flex flex-col">
         <div className="flex items-center justify-between px-5 py-3 border-b border-border">
           <div className="flex items-center gap-2 text-sm font-medium text-foreground">
             <Maximize2 className="w-4 h-4" />
-            Screenshot Preview
+            {isVideo ? 'Video Preview' : 'Screenshot Preview'}
           </div>
           <button
             type="button"
             onClick={onClose}
             className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors"
-            aria-label="Close screenshot preview"
+            aria-label="Close preview"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
         <div className="flex-1 overflow-auto p-4 flex items-center justify-center">
-          <img
-            src={src}
-            alt="Screenshot preview"
-            className="max-w-full max-h-[75vh] object-contain rounded-lg"
-          />
+          {isVideo ? (
+            <video
+              src={src}
+              controls
+              className="max-w-full max-h-[75vh] rounded-lg"
+            />
+          ) : (
+            <img
+              src={src}
+              alt="Screenshot preview"
+              className="max-w-full max-h-[75vh] object-contain rounded-lg"
+            />
+          )}
         </div>
       </div>
     </div>

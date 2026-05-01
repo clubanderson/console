@@ -56,7 +56,15 @@ export interface PreviewResult {
 export interface ScreenshotItem {
   file: File
   preview: string
+  /** Whether this attachment is a video or image */
+  mediaType?: 'image' | 'video'
 }
+
+/** Maximum video file size in bytes (10 MB) */
+export const MAX_VIDEO_SIZE_BYTES = 10 * 1024 * 1024
+
+/** Accepted media types for file input */
+export const ACCEPTED_MEDIA_TYPES = 'image/*,video/mp4,video/webm,video/quicktime'
 
 // ── Utility functions ──
 

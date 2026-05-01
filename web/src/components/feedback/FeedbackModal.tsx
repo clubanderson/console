@@ -12,7 +12,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { createPortal } from 'react-dom'
-import { X, Bug, Lightbulb, Send, CheckCircle2, ExternalLink, ImagePlus, Trash2, Copy, Check, AlertTriangle, Loader2 } from 'lucide-react'
+import { X, Bug, Lightbulb, Send, CheckCircle2, ExternalLink, ImagePlus, Trash2, Copy, Check, AlertTriangle, Loader2, Film } from 'lucide-react'
 import { Linkedin } from '@/lib/icons'
 import { ConfirmDialog } from '../../lib/modals'
 import { StatusBadge } from '../ui/StatusBadge'
@@ -26,6 +26,7 @@ import { FEEDBACK_UPLOAD_TIMEOUT_MS } from '../../lib/constants/network'
 import { compressScreenshot } from '../../lib/imageCompression'
 import { useFeatureRequests } from '../../hooks/useFeatureRequests'
 import { useAuth } from '../../lib/auth'
+import { MAX_VIDEO_SIZE_BYTES, ACCEPTED_MEDIA_TYPES } from './FeatureRequestTypes'
 
 type FeedbackType = 'bug' | 'feature'
 
@@ -57,7 +58,7 @@ export function FeedbackModal({ isOpen, onClose, initialType = 'feature' }: Feed
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [validationErrors, setValidationErrors] = useState<{ title?: string; description?: string }>({})
   const { awardCoins } = useRewards()
-  const [screenshots, setScreenshots] = useState<{ file: File; preview: string }[]>([])
+  const [screenshots, setScreenshots] = useState<{ file: File; preview: string; mediaType?: 'image' | 'video' }[]>([])
   const [isDragOver, setIsDragOver] = useState(false)
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
@@ -66,17 +67,22 @@ export function FeedbackModal({ isOpen, onClose, initialType = 'feature' }: Feed
   const handleScreenshotFiles = (files: FileList | null) => {
     if (!files) return
     const allFiles = Array.from(files)
-    const imageFiles = allFiles.filter(f => f.type.startsWith('image/'))
-    if (imageFiles.length === 0) return
-    imageFiles.forEach(file => {
+    const mediaFiles = allFiles.filter(f => f.type.startsWith('image/') || f.type.startsWith('video/'))
+    if (mediaFiles.length === 0) return
+    mediaFiles.forEach(file => {
+      const isVideo = file.type.startsWith('video/')
+      if (isVideo && file.size > MAX_VIDEO_SIZE_BYTES) {
+        showToast(`Video "${file.name}" exceeds 10 MB limit. Please use a shorter or lower-resolution recording.`, 'error')
+        return
+      }
       const reader = new FileReader()
       reader.onload = (e) => {
         const dataUri = e.target?.result as string
-        setScreenshots(prev => [...prev, { file, preview: dataUri }])
+        setScreenshots(prev => [...prev, { file, preview: dataUri, mediaType: isVideo ? 'video' : 'image' }])
       }
       reader.onerror = (err) => {
-        console.error(`[Screenshot] FileReader failed for ${file.name}:`, err)
-        showToast(`Failed to read screenshot "${file.name}". Try a different image.`, 'error')
+        console.error(`[Attachment] FileReader failed for ${file.name}:`, err)
+        showToast(`Failed to read file "${file.name}". Try a different file.`, 'error')
       }
       reader.readAsDataURL(file)
     })
@@ -90,8 +96,8 @@ export function FeedbackModal({ isOpen, onClose, initialType = 'feature' }: Feed
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragOver(false)
-    const imageCount = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')).length
-    if (imageCount > 0) emitScreenshotAttached('drop', imageCount)
+    const mediaCount = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/') || f.type.startsWith('video/')).length
+    if (mediaCount > 0) emitScreenshotAttached('drop', mediaCount)
     handleScreenshotFiles(e.dataTransfer.files)
   }
 
@@ -194,10 +200,15 @@ export function FeedbackModal({ isOpen, onClose, initialType = 'feature' }: Feed
       // Compress screenshots to fit within GitHub's 65K issue body limit.
       // Images are embedded as base64 and processed into rendered images
       // by a GitHub Actions workflow after the issue is created.
+      // Videos are passed through without compression.
       const screenshotDataURIs: string[] = []
       for (const s of screenshots) {
-        const compressed = await compressScreenshot(s.preview)
-        if (compressed) screenshotDataURIs.push(compressed)
+        if (s.mediaType === 'video') {
+          screenshotDataURIs.push(s.preview)
+        } else {
+          const compressed = await compressScreenshot(s.preview)
+          if (compressed) screenshotDataURIs.push(compressed)
+        }
       }
 
       // Submit via backend API — creates GitHub issue directly using the
@@ -524,12 +535,16 @@ export function FeedbackModal({ isOpen, onClose, initialType = 'feature' }: Feed
                           : 'border-border hover:border-muted-foreground'
                       }`}
                     >
-                      <ImagePlus className="w-5 h-5 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground text-center">Drop screenshots here or click to browse</span>
+                      <div className="flex items-center gap-2">
+                        <ImagePlus className="w-5 h-5 text-muted-foreground" />
+                        <Film className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                      <span className="text-xs text-muted-foreground text-center">Drop images or videos here, or click to browse</span>
+                      <span className="text-2xs text-muted-foreground/70">Videos: mp4, webm, mov (max 10 MB)</span>
                       <input
                         ref={fileInputRef}
                         type="file"
-                        accept="image/*"
+                        accept={ACCEPTED_MEDIA_TYPES}
                         multiple
                         onChange={e => {
                           const files = e.target.files
@@ -543,25 +558,34 @@ export function FeedbackModal({ isOpen, onClose, initialType = 'feature' }: Feed
                       <div className="mt-2 flex flex-wrap gap-2">
                         {screenshots.map((s, i) => (
                           <div key={i} className="relative group w-20 h-20 shrink-0">
-                            <img
-                              src={s.preview}
-                              alt={`Screenshot ${i + 1}`}
-                              className="w-20 h-20 object-cover rounded-lg border border-border"
-                            />
+                            {s.mediaType === 'video' ? (
+                              <div className="w-20 h-20 rounded-lg border border-border bg-black flex items-center justify-center overflow-hidden">
+                                <video src={s.preview} className="w-full h-full object-cover" muted playsInline />
+                                <Film className="absolute w-5 h-5 text-white/80 drop-shadow-md" />
+                              </div>
+                            ) : (
+                              <img
+                                src={s.preview}
+                                alt={`Attachment ${i + 1}`}
+                                className="w-20 h-20 object-cover rounded-lg border border-border"
+                              />
+                            )}
                             <div className="absolute inset-0 flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 bg-black/60 rounded-lg transition-opacity">
-                              <button
-                                type="button"
-                                onClick={e => { e.stopPropagation(); void copyScreenshotToClipboard(s.preview, i) }}
-                                className="p-1.5 rounded-md bg-secondary/80 text-foreground hover:bg-secondary transition-colors"
-                                title="Copy to clipboard"
-                              >
-                                {copiedIndex === i ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
-                              </button>
+                              {s.mediaType !== 'video' && (
+                                <button
+                                  type="button"
+                                  onClick={e => { e.stopPropagation(); void copyScreenshotToClipboard(s.preview, i) }}
+                                  className="p-1.5 rounded-md bg-secondary/80 text-foreground hover:bg-secondary transition-colors"
+                                  title="Copy to clipboard"
+                                >
+                                  {copiedIndex === i ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+                                </button>
+                              )}
                               <button
                                 type="button"
                                 onClick={e => { e.stopPropagation(); removeScreenshot(i) }}
                                 className="p-1.5 rounded-md bg-secondary/80 text-red-400 hover:bg-red-500/20 transition-colors"
-                                title="Remove screenshot"
+                                title="Remove attachment"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
