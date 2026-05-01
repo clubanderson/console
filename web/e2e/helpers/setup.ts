@@ -176,15 +176,16 @@ export async function mockApiFallback(page: Page) {
   // before the specific mock, returning {} → Number.isFinite(undefined)=false → error/retry
   // re-render cycles in Firefox/webkit causing DOM instability.
   //
-  // STRICT MOCKING: Log unmocked API calls to help detect missing endpoints (#11225)
+  // STRICT MOCKING: Return 404 for unmocked API calls so tests fail visibly (#11295)
   await page.route('**/api/**', (route) => {
     const url = route.request().url()
-    // eslint-disable-next-line no-console
-    console.error(`[mockApiFallback] Unmocked API call: ${url}`)
+    const method = route.request().method()
     route.fulfill({
-      status: 200,
+      status: 404,
       contentType: 'application/json',
-      body: JSON.stringify({}),
+      body: JSON.stringify({
+        error: `[mockApiFallback] Unmocked API call: ${method} ${url}. Add an explicit mock for this endpoint.`,
+      }),
     })
   })
 
@@ -224,6 +225,23 @@ export async function mockApiFallback(page: Page) {
       body: JSON.stringify({ error: 'Service unavailable (test mock)' }),
     })
   )
+}
+
+/**
+ * Permissive API fallback — returns {} for unmocked endpoints.
+ * Use ONLY in visual regression and performance test suites where degraded state is acceptable.
+ */
+export async function mockApiFallbackPermissive(page: Page) {
+  await page.route('**/api/**', (route) => {
+    const url = route.request().url()
+    // eslint-disable-next-line no-console
+    console.warn(`[mockApiFallbackPermissive] Unmocked API call: ${url}`)
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({}),
+    })
+  })
 }
 
 export async function setupDemoMode(page: Page) {
