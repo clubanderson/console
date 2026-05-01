@@ -2070,7 +2070,7 @@ The WebSocket connection to the agent at \`${LOCAL_AGENT_WS_URL}\` was lost and 
         let target = getSelectedKagentiAgentFromStorage()
         if (!target) {
           const discovered = await fetchKagentiProviderAgents()
-          if ((discovered || []).length > 0) {
+          if (discovered?.[0]) {
             target = {
               namespace: discovered[0].namespace,
               name: discovered[0].name,
