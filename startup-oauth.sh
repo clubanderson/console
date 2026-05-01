@@ -396,17 +396,17 @@ if [ "$USE_DEV_SERVER" = true ]; then
     if [ "$WATCHDOG_RUNNING" = false ]; then
         write_stage "watchdog"
         # Rebuild watcher if binary is missing or source changed
-        WATCHER_BIN="./bin/kc-watcher"
+        WATCHER_BIN="$SCRIPT_DIR/bin/kc-watcher"
         WATCHER_NEEDS_BUILD=false
         if [ ! -f "$WATCHER_BIN" ]; then
             WATCHER_NEEDS_BUILD=true
-        elif [ -n "$(find cmd/watcher -name '*.go' -newer "$WATCHER_BIN" 2>/dev/null)" ]; then
+        elif [ -n "$(find "$SCRIPT_DIR/cmd/watcher" -name '*.go' -newer "$WATCHER_BIN" 2>/dev/null)" ]; then
             WATCHER_NEEDS_BUILD=true
         fi
         if [ "$WATCHER_NEEDS_BUILD" = true ]; then
             echo -e "${GREEN}Building kc-watcher...${NC}"
-            mkdir -p ./bin
-            GOWORK=off go build -ldflags "-X main.version=${VERSION:-dev}" -o "$WATCHER_BIN" ./cmd/watcher
+            mkdir -p "$SCRIPT_DIR/bin"
+            GOWORK=off go build -ldflags "-X main.version=${VERSION:-dev}" -o "$WATCHER_BIN" "$SCRIPT_DIR/cmd/watcher"
         fi
         echo -e "${GREEN}Starting watcher on port 8080...${NC}"
         TLS_FLAG=""
@@ -427,11 +427,15 @@ if [ "$USE_DEV_SERVER" = true ]; then
         AGENT_LDFLAGS="-X github.com/kubestellar/console/pkg/agent.CommitSHA=$(git -C "$SCRIPT_DIR" rev-parse --short HEAD 2>/dev/null || echo unknown)"
         AGENT_LDFLAGS="$AGENT_LDFLAGS -X github.com/kubestellar/console/pkg/agent.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
         mkdir -p "$SCRIPT_DIR/bin"
-        if GOWORK=off go build -ldflags "$AGENT_LDFLAGS" -o "$SCRIPT_DIR/bin/kc-agent" ./cmd/kc-agent; then
+        if GOWORK=off go build -ldflags "$AGENT_LDFLAGS" -o "$SCRIPT_DIR/bin/kc-agent" "$SCRIPT_DIR/cmd/kc-agent"; then
             KC_AGENT_BIN="$SCRIPT_DIR/bin/kc-agent"
             echo -e "${GREEN}kc-agent built ($(git -C "$SCRIPT_DIR" rev-parse --short HEAD 2>/dev/null || echo dev))${NC}"
         else
             echo -e "${YELLOW}Warning: kc-agent build failed. Falling back to existing binary or brew.${NC}"
+            if [ -f "$SCRIPT_DIR/bin/kc-agent" ] && [ -s "$SCRIPT_DIR/bin/kc-agent" ] && [ -x "$SCRIPT_DIR/bin/kc-agent" ]; then
+                KC_AGENT_BIN="$SCRIPT_DIR/bin/kc-agent"
+                echo -e "${YELLOW}Using existing $SCRIPT_DIR/bin/kc-agent${NC}"
+            fi
         fi
     fi
 
@@ -442,7 +446,7 @@ if [ "$USE_DEV_SERVER" = true ]; then
 
     write_stage "backend_compiling"
     echo -e "${GREEN}Starting backend on port $BACKEND_LISTEN_PORT (OAuth mode)...${NC}"
-    BACKEND_PORT=$BACKEND_LISTEN_PORT GOWORK=off go run ./cmd/console &
+    BACKEND_PORT=$BACKEND_LISTEN_PORT GOWORK=off go run "$SCRIPT_DIR/cmd/console" &
     BACKEND_PID=$!
     sleep 2
 
@@ -467,17 +471,17 @@ else
     if [ "$WATCHDOG_RUNNING" = false ]; then
         write_stage "watchdog"
         # Rebuild watcher if binary is missing or source changed
-        WATCHER_BIN="./bin/kc-watcher"
+        WATCHER_BIN="$SCRIPT_DIR/bin/kc-watcher"
         WATCHER_NEEDS_BUILD=false
         if [ ! -f "$WATCHER_BIN" ]; then
             WATCHER_NEEDS_BUILD=true
-        elif [ -n "$(find cmd/watcher -name '*.go' -newer "$WATCHER_BIN" 2>/dev/null)" ]; then
+        elif [ -n "$(find "$SCRIPT_DIR/cmd/watcher" -name '*.go' -newer "$WATCHER_BIN" 2>/dev/null)" ]; then
             WATCHER_NEEDS_BUILD=true
         fi
         if [ "$WATCHER_NEEDS_BUILD" = true ]; then
             echo -e "${GREEN}Building kc-watcher...${NC}"
-            mkdir -p ./bin
-            GOWORK=off go build -ldflags "-X main.version=${VERSION:-dev}" -o "$WATCHER_BIN" ./cmd/watcher
+            mkdir -p "$SCRIPT_DIR/bin"
+            GOWORK=off go build -ldflags "-X main.version=${VERSION:-dev}" -o "$WATCHER_BIN" "$SCRIPT_DIR/cmd/watcher"
         fi
         echo -e "${GREEN}Starting watcher on port 8080...${NC}"
         TLS_FLAG=""
@@ -498,11 +502,15 @@ else
         AGENT_LDFLAGS="-X github.com/kubestellar/console/pkg/agent.CommitSHA=$(git -C "$SCRIPT_DIR" rev-parse --short HEAD 2>/dev/null || echo unknown)"
         AGENT_LDFLAGS="$AGENT_LDFLAGS -X github.com/kubestellar/console/pkg/agent.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
         mkdir -p "$SCRIPT_DIR/bin"
-        if GOWORK=off go build -ldflags "$AGENT_LDFLAGS" -o "$SCRIPT_DIR/bin/kc-agent" ./cmd/kc-agent; then
+        if GOWORK=off go build -ldflags "$AGENT_LDFLAGS" -o "$SCRIPT_DIR/bin/kc-agent" "$SCRIPT_DIR/cmd/kc-agent"; then
             KC_AGENT_BIN="$SCRIPT_DIR/bin/kc-agent"
             echo -e "${GREEN}kc-agent built ($(git -C "$SCRIPT_DIR" rev-parse --short HEAD 2>/dev/null || echo dev))${NC}"
         else
             echo -e "${YELLOW}Warning: kc-agent build failed. Falling back to existing binary or brew.${NC}"
+            if [ -f "$SCRIPT_DIR/bin/kc-agent" ] && [ -s "$SCRIPT_DIR/bin/kc-agent" ] && [ -x "$SCRIPT_DIR/bin/kc-agent" ]; then
+                KC_AGENT_BIN="$SCRIPT_DIR/bin/kc-agent"
+                echo -e "${YELLOW}Using existing $SCRIPT_DIR/bin/kc-agent${NC}"
+            fi
         fi
     fi
 
@@ -534,7 +542,7 @@ else
     # Start backend on port 8081 — watchdog on 8080 proxies to it
     write_stage "backend_compiling"
     echo -e "${GREEN}Starting backend on port $BACKEND_LISTEN_PORT (OAuth mode)...${NC}"
-    BACKEND_PORT=$BACKEND_LISTEN_PORT GOWORK=off go run ./cmd/console &
+    BACKEND_PORT=$BACKEND_LISTEN_PORT GOWORK=off go run "$SCRIPT_DIR/cmd/console" &
     BACKEND_PID=$!
     sleep 2
 
