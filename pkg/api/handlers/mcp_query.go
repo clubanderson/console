@@ -29,11 +29,11 @@ func queryAllClusters[T any](
 	ctx context.Context,
 	clusters []k8s.ClusterInfo,
 	queryFn func(ctx context.Context, clusterName string) ([]T, error),
-) ([]T, clusterErrorTracker) {
+) ([]T, *clusterErrorTracker) {
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 	var results []T
-	var errTracker clusterErrorTracker
+	errTracker := &clusterErrorTracker{}
 
 	clusterCtx, clusterCancel := context.WithCancel(ctx)
 	defer clusterCancel()
