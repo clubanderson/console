@@ -15,6 +15,7 @@ const isCI = Boolean(env.CI)
  * - Multi-cluster operations
  */
 export default defineConfig({
+  globalTeardown: './e2e/global-teardown.ts',
   testDir: './e2e',
 
   // Skip flaky tests until they are stabilized
