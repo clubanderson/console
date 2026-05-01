@@ -525,10 +525,12 @@ func (h *MissionsHandler) fetchWithCache(c *fiber.Ctx, cacheKey, url, logContext
 		if err != nil {
 			continue
 		}
-		defer resp.Body.Close()
 
+		// Read body immediately and close — using defer inside a retry loop
+		// would accumulate unclosed bodies until fetchWithCache returns.
 		limitedBody := io.LimitReader(resp.Body, missionsMaxBodyBytes)
 		body, err = io.ReadAll(limitedBody)
+		resp.Body.Close() //nolint:errcheck
 		if err != nil {
 			slog.Error("[missions] failed to read response body "+logContext, append(logArgs, "error", err, "attempt", attempt+1)...)
 			continue
