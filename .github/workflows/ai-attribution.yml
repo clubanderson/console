@@ -16,6 +16,7 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  issues: write
 
 jobs:
   attribute:
@@ -89,17 +90,23 @@ jobs:
             if (isAI) {
               // Attempt to add label — may fail if token lacks write access
               try {
-                // Ensure the label exists
+                // Ensure the label exists; 422 means another concurrent run already created it
                 try {
                   await github.rest.issues.getLabel({ owner, repo, name: LABEL_NAME });
-                } catch {
-                  await github.rest.issues.createLabel({
-                    owner,
-                    repo,
-                    name: LABEL_NAME,
-                    color: '7B68EE',
-                    description: 'PR contains AI-generated changes',
-                  });
+                } catch (getLabelErr) {
+                  if (getLabelErr.status !== 404) throw getLabelErr;
+                  try {
+                    await github.rest.issues.createLabel({
+                      owner,
+                      repo,
+                      name: LABEL_NAME,
+                      color: '7B68EE',
+                      description: 'PR contains AI-generated changes',
+                    });
+                  } catch (createLabelErr) {
+                    // 422 = label already exists (concurrent run beat us to it); proceed
+                    if (createLabelErr.status !== 422) throw createLabelErr;
+                  }
                 }
 
                 await github.rest.issues.addLabels({

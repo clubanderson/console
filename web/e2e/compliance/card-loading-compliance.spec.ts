@@ -1069,11 +1069,6 @@ test.describe('card loading compliance (per-batch split — Issue 9088)', () => 
     // This is a card design choice, not a bug. The exact count fluctuates as cards are added/removed.
     const CRITERION_I_THRESHOLD = IS_CI ? 0.80 : 0.90        // No initial demo flash — max ~36 cards (was 62)
 
-    /** Cards with documented exceptions to specific criteria (must link to issue) */
-    const KNOWN_EXCEPTIONS: Record<string, string[]> = {
-      // Example: 'some-card': ['i'],  // Uses demo initialData by design — #NNNN
-    }
-
     // Criterion a (no demo badge during loading) — must be 100% locally, >= 97% in CI
     expect(criterionPassRates['a'], `Criterion a pass rate ${Math.round(criterionPassRates['a'] * 100)}% should be >= ${Math.round(CRITERION_A_THRESHOLD * 100)}%`).toBeGreaterThanOrEqual(CRITERION_A_THRESHOLD)
     expect(criterionPassRates['i'], `Criterion i pass rate ${Math.round(criterionPassRates['i'] * 100)}% should be >= ${Math.round(CRITERION_I_THRESHOLD * 100)}%`).toBeGreaterThanOrEqual(CRITERION_I_THRESHOLD)
@@ -1083,13 +1078,12 @@ test.describe('card loading compliance (per-batch split — Issue 9088)', () => 
     // data which never triggers SSE, so pass-rate drops to 0%.
     // If not enough cards attempted SSE, warn but still check the ones that did.
     const cResults = allCards.map((c) => c.criteria['c']).filter(Boolean)
-    const cTestable = cResults.filter((r) => r.status !== 'skip')
-    const cRelevant = cTestable.length > allCards.length * 0.5
+    const cRelevant = cResults.length > allCards.length * 0.5
     if (!cRelevant) {
-      console.warn(`[Compliance] Only ${cTestable.length}/${allCards.length} cards attempted SSE — criterion C evaluated on available subset only`)
+      console.warn(`[Compliance] Only ${cResults.length}/${allCards.length} cards attempted SSE — criterion C evaluated on available subset only`)
     }
     // Always include C in critical criteria if ANY cards are testable
-    const criticalCriteria = cTestable.length > 0 ? ['c', 'd', 'f'] as const : ['d', 'f'] as const
+    const criticalCriteria = cResults.length > 0 ? ['c', 'd', 'f'] as const : ['d', 'f'] as const
     for (const criterion of criticalCriteria) {
       const rate = criterionPassRates[criterion]
       expect(rate, `Criterion ${criterion} pass rate ${Math.round(rate * 100)}% should be >= ${Math.round(CRITICAL_CRITERION_THRESHOLD * 100)}%`).toBeGreaterThanOrEqual(CRITICAL_CRITERION_THRESHOLD)
