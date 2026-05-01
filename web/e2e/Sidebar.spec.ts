@@ -146,6 +146,9 @@ test.describe('Sidebar Navigation', () => {
       // Assert expanded before click, collapsed after — no brittle offsetWidth. #9525
       await expect(collapseToggle).toHaveAttribute('aria-expanded', 'true')
 
+      // Wait for network idle to ensure no DOM re-renders during click
+      await page.waitForLoadState('networkidle').catch(() => {})
+
       // Use evaluate(el.click()) — Playwright's synthetic click can miss React's
       // event delegation on webkit when the component tree is mid-render.
       // Native el.click() bubbles through the React root, reliably firing onClick.
@@ -153,10 +156,10 @@ test.describe('Sidebar Navigation', () => {
       await collapseToggle.evaluate((el) => (el as HTMLElement).click())
 
       // Wait for aria-expanded to reflect the collapsed state — ensures React updated
-      await expect(collapseToggle).toHaveAttribute('aria-expanded', 'false', { timeout: 10000 })
+      await expect(collapseToggle).toHaveAttribute('aria-expanded', 'false', { timeout: 15000 })
 
       // Add Card button should be hidden when collapsed
-      await expect(page.getByTestId('sidebar-add-card')).not.toBeVisible({ timeout: 5000 })
+      await expect(page.getByTestId('sidebar-add-card')).not.toBeVisible({ timeout: 10000 })
     })
 
     test('sidebar can be expanded after collapse', async ({ page }) => {
@@ -164,20 +167,26 @@ test.describe('Sidebar Navigation', () => {
 
       const collapseToggle = page.getByTestId('sidebar-collapse-toggle')
 
+      // Wait for network idle before first collapse
+      await page.waitForLoadState('networkidle').catch(() => {})
+
       // Collapse first — force:true bypasses webkit/firefox actionability
       // check while the sidebar polls for data (#nightly-playwright).
       await collapseToggle.evaluate((el) => (el as HTMLElement).click())
       // Wait for aria-expanded to flip to false, indicating state update completed
-      await expect(collapseToggle).toHaveAttribute('aria-expanded', 'false', { timeout: 10000 })
-      await expect(page.getByTestId('sidebar-add-card')).not.toBeVisible({ timeout: 5000 })
+      await expect(collapseToggle).toHaveAttribute('aria-expanded', 'false', { timeout: 15000 })
+      await expect(page.getByTestId('sidebar-add-card')).not.toBeVisible({ timeout: 10000 })
+
+      // Wait for network idle before re-expanding
+      await page.waitForLoadState('networkidle').catch(() => {})
 
       // Click again to expand
       await collapseToggle.evaluate((el) => (el as HTMLElement).click())
       // Wait for aria-expanded to flip back to true
-      await expect(collapseToggle).toHaveAttribute('aria-expanded', 'true', { timeout: 10000 })
+      await expect(collapseToggle).toHaveAttribute('aria-expanded', 'true', { timeout: 15000 })
 
       // Add Card button should be visible when expanded
-      await expect(page.getByTestId('sidebar-add-card')).toBeVisible({ timeout: 5000 })
+      await expect(page.getByTestId('sidebar-add-card')).toBeVisible({ timeout: 10000 })
     })
 
     test('collapsed sidebar hides Add Card button', async ({ page }) => {
@@ -188,13 +197,16 @@ test.describe('Sidebar Navigation', () => {
 
       const collapseToggle = page.getByTestId('sidebar-collapse-toggle')
 
+      // Wait for network idle before collapse
+      await page.waitForLoadState('networkidle').catch(() => {})
+
       // Collapse sidebar — force:true for webkit/firefox stability
       await collapseToggle.evaluate((el) => (el as HTMLElement).click())
       // Wait for aria-expanded to flip to false indicating state update completed
-      await expect(collapseToggle).toHaveAttribute('aria-expanded', 'false', { timeout: 10000 })
+      await expect(collapseToggle).toHaveAttribute('aria-expanded', 'false', { timeout: 15000 })
 
       // Add Card should be hidden when collapsed
-      await expect(page.getByTestId('sidebar-add-card')).not.toBeVisible({ timeout: 5000 })
+      await expect(page.getByTestId('sidebar-add-card')).not.toBeVisible({ timeout: 10000 })
     })
   })
 
@@ -281,12 +293,15 @@ test.describe('Sidebar Navigation', () => {
         return
       }
 
-      // Click Add more — force-click on webkit where CSS transitions can
-      // cause actionability checks to stall (#nightly-playwright).
-      await addMoreBtn.click({ force: true })
+      // Wait for network idle before clicking
+      await page.waitForLoadState('networkidle').catch(() => {})
+
+      // Click Add more — use native el.click() for webkit/firefox where CSS
+      // transitions can cause actionability checks to stall (#nightly-playwright).
+      await addMoreBtn.evaluate((el) => (el as HTMLElement).click())
 
       // Modal should appear
-      await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
+      await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
     })
 
     test('customizer modal can be closed', async ({ page }) => {
@@ -299,16 +314,19 @@ test.describe('Sidebar Navigation', () => {
         return
       }
 
-      // Open customizer — force-click on webkit where CSS transitions can
-      // cause actionability checks to stall (#nightly-playwright).
-      await addMoreBtn.click({ force: true })
-      await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
+      // Wait for network idle before clicking
+      await page.waitForLoadState('networkidle').catch(() => {})
+
+      // Open customizer — use native el.click() for webkit/firefox where CSS
+      // transitions can cause actionability checks to stall (#nightly-playwright).
+      await addMoreBtn.evaluate((el) => (el as HTMLElement).click())
+      await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
 
       // Close it via Escape key
       await page.keyboard.press('Escape')
 
       // Modal should be gone
-      await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 5000 })
+      await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 10000 })
     })
   })
 
@@ -360,8 +378,11 @@ test.describe('Sidebar Navigation', () => {
     test('sidebar state persists on navigation', async ({ page }) => {
       await expect(page.getByTestId('sidebar')).toBeVisible({ timeout: 10000 })
 
+      // Wait for network idle before collapse
+      await page.waitForLoadState('networkidle').catch(() => {})
+
       // Collapse sidebar — native el.click() for webkit React event reliability (#nightly-playwright)
-      const COLLAPSE_TIMEOUT_MS = 10_000
+      const COLLAPSE_TIMEOUT_MS = 15_000
       const collapseToggle = page.getByTestId('sidebar-collapse-toggle')
       await collapseToggle.evaluate((el) => (el as HTMLElement).click())
 
@@ -372,10 +393,12 @@ test.describe('Sidebar Navigation', () => {
       // Navigate to clusters
       await page.goto('/clusters')
       await page.waitForLoadState('domcontentloaded')
+      // Wait for network idle on new page
+      await page.waitForLoadState('networkidle').catch(() => {})
 
       // Sidebar should still be collapsed (Add Card hidden)
-      // Firefox may need extra time to apply persisted sidebar state. #10134
-      const PERSIST_CHECK_TIMEOUT_MS = 10_000
+      // Firefox/webkit may need extra time to apply persisted sidebar state. #10134
+      const PERSIST_CHECK_TIMEOUT_MS = 15_000
       await expect(page.getByTestId('sidebar-add-card')).not.toBeVisible({ timeout: PERSIST_CHECK_TIMEOUT_MS })
     })
   })

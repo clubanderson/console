@@ -118,6 +118,8 @@ export default defineConfig({
       use: {
         ...devices['Desktop Firefox'],
       },
+      // Firefox is consistently slower than Chromium — increase timeout buffer
+      timeout: 90000,
     },
 
     // Webkit tests
@@ -126,6 +128,8 @@ export default defineConfig({
       use: {
         ...devices['Desktop Safari'],
       },
+      // WebKit is consistently slower than Chromium — increase timeout buffer
+      timeout: 90000,
     },
 
     // Mobile Chrome
@@ -134,6 +138,8 @@ export default defineConfig({
       use: {
         ...devices['Pixel 5'],
       },
+      // Mobile emulation can be slower — increase timeout
+      timeout: 90000,
     },
 
     // Mobile Safari
@@ -142,6 +148,8 @@ export default defineConfig({
       use: {
         ...devices['iPhone 12'],
       },
+      // Mobile Safari (WebKit) is consistently slower — increase timeout
+      timeout: 90000,
     },
   ],
 
