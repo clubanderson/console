@@ -922,3 +922,74 @@ All 6 HIGH source-file comments remain addressed from passes 78–81:
 - nightlyPlaywright: waiting for next nightly run post-source-fixes
 
 **Status:** Source fixes committed; PR #11210 in CI. Monitoring nightlyRel completion.
+
+## Pass 84 — 2026-05-01
+
+### Startup
+- Beads: reviewer-1po, reviewer-oxr both BLOCKED (coverage infra / V8 hanging)
+- No ready items from `bd ready --json`
+- Actionable: 3 issues (11293, 11296, 11300), 4 PRs (11298, 11302, 11304, 11306)
+
+### PR Review
+
+#### Merge-Eligible PRs
+- **PR #11302** (Remove .catch(() => {}) from visual tests): APPROVED ✅
+  - Uses `expect().toBeVisible()` — proper assertion, tests fail if elements missing
+  - Better than PR #11298's console.warn approach (still soft-fails)
+- **PR #11304** (Register global-teardown.ts in all configs): APPROVED ✅
+  - Registers teardown in all 4 configs (playwright.config, compliance, app-visual, visual)
+  - More complete than PR #11298's partial fix (only playwright.config)
+
+#### Concurrent Supervisor Merges
+While reviewing, supervisor merged:
+- PR #11298 (combined fix, weaker approach) at 17:20:27
+- PR #11304 at 17:20:42
+
+PR #11302 now has merge conflicts (same file modified by #11298). Posted comment recommending rebase with expect().toBeVisible() approach.
+
+#### PR #11306 (queryAllClusters refactor, architect-plan)
+- Only failing check: `attribute` (was broken, fixed by PR #11307)
+- Posted `/retest attribute` comment to trigger CI re-run
+- All other checks: build, go test, CodeQL, smoke — all pass
+
+### New PR Created
+- **PR #11309**: fix(missions): nil-guard res before StatusCode; context-aware retry delay
+  - Nil pointer safety: res != nil guards in BrowseConsoleKB and GetMissionFile
+  - Context-aware retry delay: select on ctx.Done vs time.After(delay)
+  - Found on stale local branch fix/architect-quick-wins, applied cleanly to fresh branch from main
+
+### Outstanding
+- PR #11302: Has merge conflicts — recommend rebase
+- PR #11306: Waiting for attribute CI re-run to pass after #11307 fix
+- PR #11309: In CI
+
+## Pass 85 — 2026-05-01T17:27 UTC
+
+### Trigger
+KICK — nightlyPlaywright=RED. 170 unaddressed Copilot comments (5 HIGH, 129 MEDIUM). GA4 nominal.
+
+### RED Analysis
+
+**nightlyPlaywright=RED**
+Root cause: PR #11298 and PR #11304 both added `globalTeardown: './e2e/global-teardown.ts'` to `web/playwright.config.ts`. TypeScript treats duplicate object literal keys as a compile error, breaking the Playwright config and causing all nightly Playwright runs to fail.
+
+Fix: **PR #11310** (`fix/playwright-duplicate-globalteardown`) — remove the first (uncommented) duplicate; keep the annotated entry with the #11296 comment. Also addresses MEDIUM Copilot comments on #11298 by logging full `Error` objects instead of `e.message` in `app-visual-regression.spec.ts`.
+
+### Copilot Comments Assessment
+
+**HIGH comments (PRs #11254, #11269, #11271, #11279, #11250)** — `defer resp.Body.Close()` in missions.go:
+- Verified: current `upstream/main` does NOT have `defer resp.Body.Close()` in `githubGet`. The bug appeared on those PR branches at review time but was not merged into main. These comments are stale/already-resolved.
+
+**MEDIUM comments (PR #11298)** — `e.message` only logging in `app-visual-regression.spec.ts`:
+- Fixed in PR #11310 (same PR as the playwright config fix).
+
+### PR Activity
+
+| PR | Action | Result |
+|----|--------|--------|
+| #11310 | Created | fix(playwright): remove duplicate globalTeardown + full Error logging |
+
+### No Merge-Eligible PRs
+- #11306: CI failing
+- #11308: CI pending, external author
+- #11309: CI pending
