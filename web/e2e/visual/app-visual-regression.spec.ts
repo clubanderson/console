@@ -24,7 +24,7 @@ async function setupAndNavigate(page: Page, path = '/') {
   await page.waitForLoadState('domcontentloaded')
   // Wait for the app shell (sidebar) to confirm React has rendered the route.
   // #root is always in the DOM before React renders — use sidebar testid instead.
-  await page.getByTestId('sidebar').waitFor({ state: 'visible', timeout: ROOT_VISIBLE_TIMEOUT_MS }).catch(() => {})
+  await expect(page.getByTestId('sidebar')).toBeVisible({ timeout: ROOT_VISIBLE_TIMEOUT_MS })
 }
 
 test.describe('Full-app layout — desktop (1440×900)', () => {
@@ -34,7 +34,7 @@ test.describe('Full-app layout — desktop (1440×900)', () => {
     await setupAndNavigate(page)
 
     const grid = page.getByTestId('dashboard-cards-grid')
-    await grid.waitFor({ state: 'visible', timeout: DASHBOARD_SETTLE_TIMEOUT_MS }).catch(() => {})
+    await expect(grid).toBeVisible({ timeout: DASHBOARD_SETTLE_TIMEOUT_MS })
 
     await expect(page).toHaveScreenshot('app-dashboard-desktop-1440.png', {
       fullPage: false,
@@ -44,10 +44,9 @@ test.describe('Full-app layout — desktop (1440×900)', () => {
   test('dashboard header and controls', async ({ page }) => {
     await setupAndNavigate(page)
 
-    await page.getByTestId('dashboard-header').waitFor({
-      state: 'visible',
+    await expect(page.getByTestId('dashboard-header')).toBeVisible({
       timeout: DASHBOARD_SETTLE_TIMEOUT_MS,
-    }).catch(() => {})
+    })
 
     await expect(page).toHaveScreenshot('app-header-controls-desktop-1440.png', {
       fullPage: false,
@@ -62,7 +61,7 @@ test.describe('Full-app layout — laptop (1280×720)', () => {
     await setupAndNavigate(page)
 
     const grid = page.getByTestId('dashboard-cards-grid')
-    await grid.waitFor({ state: 'visible', timeout: DASHBOARD_SETTLE_TIMEOUT_MS }).catch(() => {})
+    await expect(grid).toBeVisible({ timeout: DASHBOARD_SETTLE_TIMEOUT_MS })
 
     await expect(page).toHaveScreenshot('app-dashboard-laptop-1280.png', {
       fullPage: false,
@@ -77,7 +76,7 @@ test.describe('Full-app layout — tablet (768×1024)', () => {
     await setupAndNavigate(page)
 
     const grid = page.getByTestId('dashboard-cards-grid')
-    await grid.waitFor({ state: 'visible', timeout: DASHBOARD_SETTLE_TIMEOUT_MS }).catch(() => {})
+    await expect(grid).toBeVisible({ timeout: DASHBOARD_SETTLE_TIMEOUT_MS })
 
     await expect(page).toHaveScreenshot('app-dashboard-tablet-768.png', {
       fullPage: false,
@@ -92,7 +91,7 @@ test.describe('Full-app layout — full page scroll', () => {
     await setupAndNavigate(page)
 
     const grid = page.getByTestId('dashboard-cards-grid')
-    await grid.waitFor({ state: 'visible', timeout: DASHBOARD_SETTLE_TIMEOUT_MS }).catch(() => {})
+    await expect(grid).toBeVisible({ timeout: DASHBOARD_SETTLE_TIMEOUT_MS })
 
     await expect(page).toHaveScreenshot('app-dashboard-fullpage-1440.png', {
       fullPage: true,
@@ -109,10 +108,10 @@ test.describe('Clusters page — desktop (1440×900)', () => {
     await setupAndNavigate(page, '/clusters')
 
     const clustersPage = page.getByTestId('clusters-page')
-    await clustersPage.waitFor({ state: 'visible', timeout: DASHBOARD_SETTLE_TIMEOUT_MS }).catch(() => {})
+    await expect(clustersPage).toBeVisible({ timeout: DASHBOARD_SETTLE_TIMEOUT_MS })
 
     const sidebar = page.getByTestId('sidebar')
-    await sidebar.waitFor({ state: 'visible', timeout: DASHBOARD_SETTLE_TIMEOUT_MS }).catch(() => {})
+    await expect(sidebar).toBeVisible({ timeout: DASHBOARD_SETTLE_TIMEOUT_MS })
 
     await expect(page).toHaveScreenshot('app-clusters-desktop-1440.png', {
       fullPage: false,
@@ -123,7 +122,7 @@ test.describe('Clusters page — desktop (1440×900)', () => {
     await setupAndNavigate(page, '/clusters')
 
     const clustersPage = page.getByTestId('clusters-page')
-    await clustersPage.waitFor({ state: 'visible', timeout: DASHBOARD_SETTLE_TIMEOUT_MS }).catch(() => {})
+    await expect(clustersPage).toBeVisible({ timeout: DASHBOARD_SETTLE_TIMEOUT_MS })
 
     await expect(page).toHaveScreenshot('app-clusters-fullpage-1440.png', {
       fullPage: true,
@@ -138,7 +137,7 @@ test.describe('Clusters page — tablet (768×1024)', () => {
     await setupAndNavigate(page, '/clusters')
 
     const clustersPage = page.getByTestId('clusters-page')
-    await clustersPage.waitFor({ state: 'visible', timeout: DASHBOARD_SETTLE_TIMEOUT_MS }).catch(() => {})
+    await expect(clustersPage).toBeVisible({ timeout: DASHBOARD_SETTLE_TIMEOUT_MS })
 
     await expect(page).toHaveScreenshot('app-clusters-tablet-768.png', {
       fullPage: false,
@@ -155,7 +154,7 @@ test.describe('Settings page — desktop (1440×900)', () => {
     await setupAndNavigate(page, '/settings')
 
     const settingsPage = page.getByTestId('settings-page')
-    await settingsPage.waitFor({ state: 'visible', timeout: DASHBOARD_SETTLE_TIMEOUT_MS }).catch(() => {})
+    await expect(settingsPage).toBeVisible({ timeout: DASHBOARD_SETTLE_TIMEOUT_MS })
 
     await expect(page).toHaveScreenshot('app-settings-desktop-1440.png', {
       fullPage: false,
@@ -166,7 +165,7 @@ test.describe('Settings page — desktop (1440×900)', () => {
     await setupAndNavigate(page, '/settings')
 
     const settingsPage = page.getByTestId('settings-page')
-    await settingsPage.waitFor({ state: 'visible', timeout: DASHBOARD_SETTLE_TIMEOUT_MS }).catch(() => {})
+    await expect(settingsPage).toBeVisible({ timeout: DASHBOARD_SETTLE_TIMEOUT_MS })
 
     await expect(page).toHaveScreenshot('app-settings-fullpage-1440.png', {
       fullPage: true,
