@@ -312,7 +312,7 @@ export async function setupLiveMocks(page: Page, options?: LiveMockOptions): Pro
   })
 
   // 4. Health endpoints
-  await page.route('**/health', (route) => {
+  await page.route(/^https?:\/\/[^/]+\/(api\/)?health(\?.*)?$/, (route) => {
     route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'ok', uptime: 3600 }) })
   })
 
@@ -540,7 +540,7 @@ export async function setupLiveMocks(page: Page, options?: LiveMockOptions): Pro
     cronjobs: { cronjobs: [{ name: 'daily-backup', namespace: 'default', cluster: MOCK_CLUSTER, schedule: '0 2 * * *', lastSchedule: '2026-01-15T02:00:00Z', active: 0 }] },
     'gpu-nodes': { nodes: [{ name: 'gpu-node-1', cluster: MOCK_CLUSTER, gpus: [{ model: 'A100', memory: '80Gi', index: 0 }], labels: {}, allocatable: {}, capacity: {} }] },
     clusters: { clusters: [{ name: MOCK_CLUSTER, reachable: true, status: 'Ready', provider: 'kind', version: '1.28.0' }] },
-    'cluster-health': { status: 'ok', healthy: true, cluster: MOCK_CLUSTER, nodeCount: 3, readyNodes: 3, podCount: 12, cpuCores: 8, memoryGB: 16, metricsAvailable: true },
+    'cluster-health': { healthy: true, cluster: MOCK_CLUSTER, nodeCount: 3, readyNodes: 3, podCount: 12, cpuCores: 8, memoryGB: 16, metricsAvailable: true, reachable: true },
     status: { status: 'ok', version: 'e2e-test', clusters: 1, hasClaude: false },
     namespaces: { namespaces: MOCK_DATA.namespaces.namespaces },
     'nvidia-operators': { operators: [] },
@@ -623,7 +623,8 @@ export async function setupLiveMocks(page: Page, options?: LiveMockOptions): Pro
       if (data) {
         await maybeDelay()
         const itemsKey = Object.keys(data)[0] || 'items'
-        const rawItems = (data as Record<string, unknown>)[itemsKey]
+        const dataRecord = data as Record<string, unknown>
+        const rawItems = dataRecord[itemsKey]
         const items = Array.isArray(rawItems) ? rawItems : []
         const sseBody = [
           'event: cluster_data',
@@ -645,7 +646,11 @@ export async function setupLiveMocks(page: Page, options?: LiveMockOptions): Pro
     // REST endpoints — try compound key (e.g. kagent-crds/agents) then first segment
     const compoundKey = pathParts.slice(0, 2).join('/')
     const simpleKey = pathParts[0]
-    const endpoint = AGENT_ENDPOINT_DATA[compoundKey] ? compoundKey : simpleKey
+    // Handle /clusters/<name>/health → cluster-health
+    const isClusterHealthPath = pathParts.length === 3 && pathParts[0] === 'clusters' && pathParts[2] === 'health'
+    const endpoint = isClusterHealthPath
+        ? 'cluster-health'
+        : AGENT_ENDPOINT_DATA[compoundKey] ? compoundKey : simpleKey
     if (shouldError(endpoint)) { await fulfillError(route, endpoint); return }
     const data = AGENT_ENDPOINT_DATA[endpoint]
     if (data) {
