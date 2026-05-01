@@ -922,3 +922,26 @@ All 6 HIGH source-file comments remain addressed from passes 78–81:
 - nightlyPlaywright: waiting for next nightly run post-source-fixes
 
 **Status:** Source fixes committed; PR #11210 in CI. Monitoring nightlyRel completion.
+
+---
+
+## Pass 91 — 2026-05-01
+
+### RED Indicators
+- **nightly=RED**: consistency-test failed at 07:53 with 4 Phase-5 errors (unguarded fetch calls). Fixed by PR #11227 (merged earlier). Re-run at 09:10 → **32/32 PASS** ✅ nightly=GREEN.
+- **nightlyPlaywright=RED**: Unmocked API calls (`/api/youtube/playlist`, `/api/medium/blog`, `/api/active-users`, `/api/dashboards`, etc.). Scanner-owned; not touched.
+
+### Merges
+- PR #11235 (`fix(test): clarify MISSING_CREDENTIALS remediation test name`) — merged upstream ✅
+- No other merge-eligible PRs.
+
+### File Fix
+`web/src/components/cards/GitHubActivity.tsx` — Promise.all blocks for PRs and issues were using bare `fetchOptions` (no `signal`). Added `AbortSignal.timeout(FETCH_DEFAULT_TIMEOUT_MS)` consistently to all 4 calls. Addresses MEDIUM Copilot comments on #11227 (lines 253, 299).
+
+### Commit
+`05bbb4c90` — 🐛 fix(GitHubActivity): add AbortSignal.timeout to all unguarded PR/issues fetch calls
+
+### HIGH Copilot Comments
+- `preflightCheck-coverage.test.ts:443` (PR #11192) → addressed by PR #11235, now merged ✅
+
+**Status:** nightly=GREEN. GitHubActivity fetch timeout fix pushed. nightlyPlaywright=RED remains (scanner-owned).
