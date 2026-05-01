@@ -928,6 +928,7 @@ test.describe('card loading compliance (per-batch split — Issue 9088)', () => 
     }
   })
 
+  // eslint-disable-next-line no-empty-pattern
   test('setup — mocks + warmup + manifest', async ({}, testInfo) => {
     testInfo.setTimeout(IS_CI ? PER_BATCH_TIMEOUT_MS * CI_TIMEOUT_MULTIPLIER : PER_BATCH_TIMEOUT_MS)
 
@@ -965,6 +966,7 @@ test.describe('card loading compliance (per-batch split — Issue 9088)', () => 
   // beyond the actual manifest size short-circuit (Playwright requires test
   // declarations at load time, so we can't size this dynamically).
   for (let batchIdx = 0; batchIdx < MAX_EXPECTED_BATCHES; batchIdx++) {
+    // eslint-disable-next-line no-empty-pattern
     test(`cold — batch ${batchIdx + 1}`, async ({}, testInfo) => {
       testInfo.setTimeout(IS_CI ? PER_BATCH_TIMEOUT_MS * CI_TIMEOUT_MULTIPLIER : PER_BATCH_TIMEOUT_MS)
       if (!complianceState.setupDone) {
@@ -978,6 +980,7 @@ test.describe('card loading compliance (per-batch split — Issue 9088)', () => 
     })
   }
 
+  // eslint-disable-next-line no-empty-pattern
   test('navigate away — between cold and warm phases', async ({}, testInfo) => {
     testInfo.setTimeout(IS_CI ? PER_BATCH_TIMEOUT_MS * CI_TIMEOUT_MULTIPLIER : PER_BATCH_TIMEOUT_MS)
     if (!complianceState.setupDone) test.skip(true, 'setup did not complete')
@@ -987,6 +990,7 @@ test.describe('card loading compliance (per-batch split — Issue 9088)', () => 
   })
 
   for (let batchIdx = 0; batchIdx < MAX_EXPECTED_BATCHES; batchIdx++) {
+    // eslint-disable-next-line no-empty-pattern
     test(`warm — batch ${batchIdx + 1}`, async ({}, testInfo) => {
       testInfo.setTimeout(IS_CI ? PER_BATCH_TIMEOUT_MS * CI_TIMEOUT_MULTIPLIER : PER_BATCH_TIMEOUT_MS)
       if (!complianceState.setupDone) {
@@ -1004,6 +1008,7 @@ test.describe('card loading compliance (per-batch split — Issue 9088)', () => 
     })
   }
 
+  // eslint-disable-next-line no-empty-pattern
   test('aggregate report + cross-batch assertions', async ({}, testInfo) => {
     testInfo.setTimeout(IS_CI ? PER_BATCH_TIMEOUT_MS * CI_TIMEOUT_MULTIPLIER : PER_BATCH_TIMEOUT_MS)
     if (!complianceState.setupDone) test.skip(true, 'setup did not complete')
