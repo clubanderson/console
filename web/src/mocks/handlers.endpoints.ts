@@ -241,6 +241,9 @@ export function createHandlers() {
       readyNodes: cluster?.healthy ? cluster.nodeCount : (cluster?.nodeCount ?? 3) - 1,
       podCount: cluster?.podCount ?? 45,
       issues: cluster?.healthy ? [] : ['Node not ready'],
+      reachable: true,
+      lastSeen: new Date().toISOString(),
+      apiServer: cluster?.server ?? `https://${String(params.cluster)}.example.com:6443`,
     })
   }),
 
@@ -1646,7 +1649,10 @@ export function createHandlers() {
   }),
 
   // Root-level health check (used by useBackendHealth, useSelfUpgrade, useBranding, etc.)
-  http.get('/health', async () => {
+  // Scope to same-origin only — previous bare '/health' path also intercepted
+  // cross-origin requests to http://127.0.0.1:8585/health (kc-agent health
+  // probe), making the agent appear healthy when it wasn't running (#11264).
+  http.get(new URL('/health', location.origin).href, async () => {
     await delay(50)
     return HttpResponse.json({ status: 'ok', version: 'demo', mode: 'netlify' })
   }),

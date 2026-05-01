@@ -119,12 +119,29 @@ function makeRestFetcher(config: RestFetcherConfig) {
   }
 }
 
-export const fetchAPI = makeRestFetcher({
+const _rawAgentFetcher = makeRestFetcher({
   urlPrefix: `${LOCAL_AGENT_HTTP_URL}/`,
   timeoutMs: FETCH_DEFAULT_TIMEOUT_MS,
   useGlobalAbort: true,
   errorLabel: '/api/mcp',
 })
+
+/**
+ * Fetcher that targets the local kc-agent (port 8585).
+ *
+ * Guards against empty LOCAL_AGENT_HTTP_URL **before** the network request
+ * so callers in web-workers and Netlify builds get a synchronous rejection
+ * instead of a misleading same-origin fetch to "/" (#11263).
+ */
+export async function fetchAPI<T>(
+  endpoint: string,
+  params?: Record<string, FetchParamValue>,
+): Promise<T> {
+  if (!LOCAL_AGENT_HTTP_URL) {
+    throw new Error('Local agent URL not configured — cannot reach kc-agent')
+  }
+  return _rawAgentFetcher<T>(endpoint, params)
+}
 
 /**
  * Fetcher that targets the main backend (port 8080) via same-origin `/api/mcp/`.
