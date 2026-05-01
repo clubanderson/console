@@ -64,11 +64,11 @@ export const EXPECTED_ERROR_PATTERNS = [
   /Notification permission/i, // Firefox blocks notification requests outside user gestures
   /Notification prompting can only be done from a user gesture/i, // WebKit/Safari wording for notification gesture block
   /ERR_CONNECTION_REFUSED/i, // Backend/agent not running in CI
-  /net::ERR_/i, // Any network-level Chrome error in demo mode
+  /net::ERR_CONNECTION_REFUSED.*(:8585|:8080|localhost)/i, // Agent/backend ports only in demo mode (#11294)
   /Could not connect to [0-9.]+/i, // WebKit wording for connection refused (no net:: prefix)
-  /Connection refused/i, // Generic connection refused wording across browsers
+  /Connection refused.*(:8585|:8080|127\.0\.0\.1|localhost)/i, // Backend/agent connection only (#11294)
   /502.*Bad Gateway/i, // Reverse proxy errors when backend not running
-  /Failed to load resource/i, // Generic resource load failures in demo mode
+  /Failed to load resource.*(:8585|:8080|\/api\/)/i, // Backend API resource failures only (#11294)
   // SQLite WASM cache worker — webkit/Safari can't streaming-compile the
   // sqlite3 wasm, and the worker has a documented IndexedDB fallback path
   // (see lib/cache/worker.ts). These errors emit from the sqlite-wasm loader
