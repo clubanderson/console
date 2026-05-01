@@ -518,7 +518,13 @@ func (h *MissionsHandler) fetchWithCache(c *fiber.Ctx, cacheKey, url, logContext
 		if attempt > 0 {
 			delay := missionsFetchRetryBaseDelay * time.Duration(1<<(attempt-1))
 			slog.Info("[missions] retrying upstream fetch "+logContext, append(logArgs, "attempt", attempt+1, "delay", delay)...)
-			time.Sleep(delay)
+			// Monitor context cancellation to avoid orphaned goroutines on client disconnect
+			select {
+			case <-c.Context().Done():
+				return nil, c.Context().Err()
+			case <-time.After(delay):
+				// Continue to retry
+			}
 		}
 
 		resp, err = h.githubGet(url, c.Get("X-GitHub-Token"))
