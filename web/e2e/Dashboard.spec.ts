@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { setupDashboardTest, mockApiFallback } from './helpers/setup'
+import { mockApiFallback } from './helpers/setup'
 import { setupStrictDemoMode, API_RESPONSES } from './helpers/api-mocks'
 
 test.describe('Dashboard Page', () => {
@@ -161,16 +161,14 @@ test.describe('Dashboard Page', () => {
       const cardsGrid = page.getByTestId('dashboard-cards-grid')
       const firstCard = cardsGrid.locator('> div').first()
 
-      // Card should be visible
-      const isVisible = await firstCard.isVisible().catch(() => false)
+      // Wait for the first card to become visible before interacting
+      await expect(firstCard).toBeVisible({ timeout: 10000 })
 
-      if (isVisible) {
-        // Test hover - should not throw
-        await firstCard.hover()
+      // Test hover - should not throw
+      await firstCard.hover()
 
-        // Card should remain visible after hover
-        await expect(firstCard).toBeVisible()
-      }
+      // Card should remain visible after hover
+      await expect(firstCard).toBeVisible()
     })
   })
 
@@ -258,7 +256,10 @@ test.describe('Dashboard Page', () => {
       // skeleton element to confirm loading UI is shown before data arrives.
       const SKELETON_TIMEOUT_MS = 1000
       const skeletonElement = page.locator('.animate-pulse').first()
-      const hasLoadingSkeleton = await skeletonElement.isVisible({ timeout: SKELETON_TIMEOUT_MS }).catch(() => false)
+      const hasLoadingSkeleton = await skeletonElement
+        .waitFor({ state: 'visible', timeout: SKELETON_TIMEOUT_MS })
+        .then(() => true)
+        .catch(() => false)
 
       // If skeleton is visible, loading state is correctly displayed.
       // On fast connections or cached data, the skeleton may not appear
@@ -372,7 +373,10 @@ test.describe('Dashboard Page', () => {
       // animation to confirm visual feedback is shown during refresh.
       const REFRESH_ICON_TIMEOUT_MS = 2000
       const refreshIcon = page.locator('[data-testid*="refresh"], .animate-spin').first()
-      const hasRefreshIndicator = await refreshIcon.isVisible({ timeout: REFRESH_ICON_TIMEOUT_MS }).catch(() => false)
+      const hasRefreshIndicator = await refreshIcon
+        .waitFor({ state: 'visible', timeout: REFRESH_ICON_TIMEOUT_MS })
+        .then(() => true)
+        .catch(() => false)
 
       // If refresh animation appears, verify it's visible. On fast connections
       // or cached data, the refresh may complete before the animation renders,
@@ -474,16 +478,18 @@ test.describe('Dashboard Page', () => {
 
       // Look for the mock pod count rendered on the page. Use word boundary
       // regex to avoid matching inside larger numbers (e.g., "42" in "420").
-      const hasPodCount = await dashboardBody
+      const podCountLocator = dashboardBody
         .getByText(new RegExp(`\\b${MOCK_POD_COUNT}\\b`))
         .first()
-        .isVisible({ timeout: CARD_DATA_TIMEOUT_MS })
+      const hasPodCount = await podCountLocator
+        .waitFor({ state: 'visible', timeout: CARD_DATA_TIMEOUT_MS })
+        .then(() => true)
         .catch(() => false)
 
       // If a pod card is present and loaded the mock data, the count should
       // appear. If no pod card is on the default dashboard, skip gracefully.
       if (hasPodCount) {
-        await expect(dashboardBody.getByText(new RegExp(`\\b${MOCK_POD_COUNT}\\b`)).first()).toBeVisible()
+        await expect(podCountLocator).toBeVisible()
       }
     })
 
@@ -510,14 +516,15 @@ test.describe('Dashboard Page', () => {
       const CLUSTER_NAME_TIMEOUT_MS = 15_000
       const dashboardPage = page.getByTestId('dashboard-page')
 
-      const hasHealthyCluster = await dashboardPage
-        .getByText('test-healthy-cluster')
-        .isVisible({ timeout: CLUSTER_NAME_TIMEOUT_MS })
+      const healthyClusterLocator = dashboardPage.getByText('test-healthy-cluster')
+      const hasHealthyCluster = await healthyClusterLocator
+        .waitFor({ state: 'visible', timeout: CLUSTER_NAME_TIMEOUT_MS })
+        .then(() => true)
         .catch(() => false)
 
       // If cluster cards are on the dashboard, verify the mock data appears.
       if (hasHealthyCluster) {
-        await expect(dashboardPage.getByText('test-healthy-cluster')).toBeVisible()
+        await expect(healthyClusterLocator).toBeVisible()
       }
     })
 
@@ -545,15 +552,17 @@ test.describe('Dashboard Page', () => {
       const NAMESPACE_COUNT_TIMEOUT_MS = 15_000
       const dashboardBody = page.locator('body')
 
-      const hasNamespaceCount = await dashboardBody
+      const namespaceCountLocator = dashboardBody
         .getByText(new RegExp(`\\b${MOCK_NAMESPACE_COUNT}\\b`))
         .first()
-        .isVisible({ timeout: NAMESPACE_COUNT_TIMEOUT_MS })
+      const hasNamespaceCount = await namespaceCountLocator
+        .waitFor({ state: 'visible', timeout: NAMESPACE_COUNT_TIMEOUT_MS })
+        .then(() => true)
         .catch(() => false)
 
       // If a namespace card is present, verify the mock count appears.
       if (hasNamespaceCount) {
-        await expect(dashboardBody.getByText(new RegExp(`\\b${MOCK_NAMESPACE_COUNT}\\b`)).first()).toBeVisible()
+        await expect(namespaceCountLocator).toBeVisible()
       }
     })
   })
@@ -566,7 +575,7 @@ test.describe('Dashboard Page', () => {
 // assertions.
 //
 // #10433 — Moved to a standalone top-level describe so these tests do NOT
-// inherit the outer `Dashboard Page` beforeEach (setupDashboardTest), which
+// inherit the outer `Dashboard Page` beforeEach (strict demo mode setup), which
 // registers an addInitScript setting kc-demo-mode=true. Since addInitScript
 // callbacks accumulate and cannot be removed, the outer demo-mode=true init
 // script was racing with the inner demo-mode=false init script on cross-browser
@@ -757,7 +766,8 @@ test.describe('Dashboard Data Accuracy (#6459)', () => {
       for (let i = 1; i <= EXPECTED_CLUSTER_COUNT; i++) {
         const rowLocator = page.locator(`[data-testid="cluster-row-accuracy-cluster-${i}"]`)
         const hasRow = await rowLocator
-          .isVisible({ timeout: DATA_RENDER_TIMEOUT_MS })
+          .waitFor({ state: 'visible', timeout: DATA_RENDER_TIMEOUT_MS })
+          .then(() => true)
           .catch(() => false)
         if (hasRow) found++
       }
@@ -785,7 +795,10 @@ test.describe('Dashboard Data Accuracy (#6459)', () => {
     // than on desktop Chromium; use a generous timeout.
     const STAT_BLOCK_TIMEOUT_MS = 20_000
     const clusterStatBlock = page.getByTestId('stat-block-clusters').first()
-    const hasStatBlock = await clusterStatBlock.isVisible({ timeout: STAT_BLOCK_TIMEOUT_MS }).catch(() => false)
+    const hasStatBlock = await clusterStatBlock
+      .waitFor({ state: 'visible', timeout: STAT_BLOCK_TIMEOUT_MS })
+      .then(() => true)
+      .catch(() => false)
     if (hasStatBlock) {
       // Digit-boundary match: the StatBlock wraps the numeric value in a
       // div with header text ("Clusters") and optional sublabel, so we
@@ -809,7 +822,10 @@ test.describe('Dashboard Data Accuracy (#6459)', () => {
         .getByRole('status')
         .filter({ hasText: /cluster/i })
         .first()
-      const labelVisible = await countByLabel.isVisible({ timeout: STAT_BLOCK_TIMEOUT_MS }).catch(() => false)
+      const labelVisible = await countByLabel
+        .waitFor({ state: 'visible', timeout: STAT_BLOCK_TIMEOUT_MS })
+        .then(() => true)
+        .catch(() => false)
       if (labelVisible) {
         await expect(countByLabel).toHaveText(
           new RegExp(`(?<!\\d)${EXPECTED_CLUSTER_COUNT}(?!\\d)`)
