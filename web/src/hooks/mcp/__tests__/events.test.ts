@@ -238,8 +238,9 @@ describe('useEvents', () => {
     expect(
       result.current.error === null || result.current.error === 'Failed to fetch events'
     ).toBe(true)
-    // With exponential backoff, cascading re-fetches quickly exceed the threshold
+    // At least one failure from the initial render-triggered fetch
     expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(1)
+    // isFailed may or may not be true depending on cascade timing
   })
 
   it('returns demo events when demo mode is active', async () => {
@@ -370,9 +371,13 @@ describe('useEvents', () => {
 
     const { result } = renderHook(() => useEvents())
 
-    // With exponential backoff, consecutiveFailures is a useEffect dependency.
-    // Each failure triggers an effect re-run which immediately refetches,
-    // causing rapid cascading failures that quickly exceed the threshold.
+    // Wait for first failure from the initial effect-triggered refetch
+    await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(1))
+
+    // Explicitly trigger additional failures to reach threshold reliably
+    await act(async () => { await result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
+
     await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(3))
     expect(result.current.isFailed).toBe(true)
   })

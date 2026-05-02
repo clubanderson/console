@@ -614,8 +614,9 @@ describe('useMCPStatus — additional branches', () => {
       .mockRejectedValueOnce(new Error('Network error'))
       .mockImplementation(() => new Promise(() => {}))
     await act(async () => { vi.advanceTimersByTime(REFRESH_INTERVAL_MS) })
-    await act(async () => { await Promise.resolve() })
-    expect(result.current.error).toBe('MCP bridge not available')
+    // Flush multiple microtasks so the rejection settles and effect re-run completes
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); await Promise.resolve() })
+    await waitFor(() => expect(result.current.error).toBe('MCP bridge not available'))
     expect(result.current.status).toBeNull()
     vi.useRealTimers()
   })
@@ -628,8 +629,9 @@ describe('useMCPStatus — additional branches', () => {
       .mockRejectedValueOnce(new Error('err'))
       .mockImplementation(() => new Promise(() => {}))
     const { result } = renderHook(() => useMCPStatus())
-    await act(async () => { await Promise.resolve() })
-    expect(result.current.error).toBe('MCP bridge not available')
+    // Flush microtasks so rejection + effect re-run (hitting hanging mock) settles
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); await Promise.resolve() })
+    await waitFor(() => expect(result.current.error).toBe('MCP bridge not available'))
 
     // Now succeed — replace mock with success response
     const good: MCPStatus = {
@@ -637,9 +639,10 @@ describe('useMCPStatus — additional branches', () => {
       deployClient: { available: false, toolCount: 0 },
     }
     mockAgentFetch.mockImplementation(() => Promise.resolve(new Response(JSON.stringify(good), { status: 200 })))
+    // Advance past the backoff interval (2x base after 1 failure)
     await act(async () => { vi.advanceTimersByTime(REFRESH_INTERVAL_MS * 4) })
-    await act(async () => { await Promise.resolve() })
-    expect(result.current.error).toBeNull()
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); await Promise.resolve() })
+    await waitFor(() => expect(result.current.error).toBeNull())
     expect(result.current.status).toEqual(good)
     vi.useRealTimers()
   })
@@ -660,9 +663,12 @@ describe('useClusterHealth — additional branches', () => {
   })
 
   it('getCachedHealth returns null when cluster is undefined', async () => {
+    vi.useFakeTimers()
     const { result } = renderHook(() => useClusterHealth(undefined))
-    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    await act(async () => { await Promise.resolve(); await Promise.resolve() })
+    expect(result.current.isLoading).toBe(false)
     expect(result.current.health).toBeNull()
+    vi.useRealTimers()
   })
 
   it('getCachedHealth returns null when cluster has no nodeCount in cache', async () => {

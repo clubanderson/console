@@ -714,15 +714,22 @@ describe('usePVCs - consecutive failure tracking', () => {
 
     const { result } = renderHook(() => usePVCs())
 
-    // With exponential backoff, consecutiveFailures in useEffect deps causes
-    // cascading re-fetches that quickly exceed the threshold
+    // Wait for first failure from the initial effect-triggered refetch
+    await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(1))
+
+    // Explicitly trigger additional failures to reach threshold reliably
+    await act(async () => { await result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
+
     await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(3))
     expect(result.current.isFailed).toBe(true)
   })
 
   it('resets consecutiveFailures to 0 on successful fetch', async () => {
-    // Start with a single failure
-    globalThis.fetch = vi.fn().mockRejectedValueOnce(new Error('fail'))
+    // Start with a single failure, then hang to prevent cascading
+    globalThis.fetch = vi.fn()
+      .mockRejectedValueOnce(new Error('fail'))
+      .mockImplementation(() => new Promise(() => {}))
 
     const { result } = renderHook(() => usePVCs())
     await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(1))
@@ -766,7 +773,13 @@ describe('usePVs - additional edge cases', () => {
 
     const { result } = renderHook(() => usePVs())
 
-    // With exponential backoff, cascading effect re-runs quickly accumulate failures
+    // Wait for first failure from the initial effect-triggered refetch
+    await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(1))
+
+    // Explicitly trigger additional failures to reach threshold reliably
+    await act(async () => { await result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
+
     await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(3))
     expect(result.current.isFailed).toBe(true)
   })
@@ -1064,7 +1077,10 @@ describe('usePVCs — additional branches', () => {
 
   it('preserves stale data on error when cache exists', async () => {
     const initialPvc = { name: 'cached-pvc', namespace: 'ns', cluster: 'c1', status: 'Bound', capacity: '10Gi', storageClass: 'gp3' }
-    globalThis.fetch = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({ pvcs: [initialPvc] }), { status: 200 }))
+    // First call succeeds, subsequent calls hang to prevent any cascade
+    globalThis.fetch = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ pvcs: [initialPvc] }), { status: 200 }))
+      .mockImplementation(() => new Promise(() => {}))
 
     const { result } = renderHook(() => usePVCs())
     await waitFor(() => expect(result.current.pvcs).toHaveLength(1))
@@ -1119,8 +1135,10 @@ describe('usePVs — additional branches', () => {
   })
 
   it('resets consecutiveFailures to 0 on successful fetch after errors', async () => {
-    // First: fail
-    globalThis.fetch = vi.fn().mockRejectedValueOnce(new Error('fail'))
+    // First: fail, then hang to prevent cascading
+    globalThis.fetch = vi.fn()
+      .mockRejectedValueOnce(new Error('fail'))
+      .mockImplementation(() => new Promise(() => {}))
     const { result } = renderHook(() => usePVs())
     await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(1))
 

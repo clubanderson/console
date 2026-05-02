@@ -421,15 +421,22 @@ describe('useServices', () => {
 
     const { result } = renderHook(() => useServices())
 
-    // With exponential backoff, consecutiveFailures in useEffect deps causes
-    // cascading re-fetches. The hook quickly accumulates >= 3 failures.
+    // Wait for first failure from the initial effect-triggered refetch
+    await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(1))
+
+    // Explicitly trigger additional failures to reach threshold reliably
+    await act(async () => { await result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
+
     await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(3))
     expect(result.current.isFailed).toBe(true)
   })
 
   it('resets consecutiveFailures to 0 on successful fetch after failures', async () => {
-    // Start with a single failure then stop failing
-    globalThis.fetch = vi.fn().mockResolvedValueOnce({ ok: false, status: 500 })
+    // Start with a single failure then hang to prevent cascading
+    globalThis.fetch = vi.fn()
+      .mockResolvedValueOnce({ ok: false, status: 500 })
+      .mockImplementation(() => new Promise(() => {}))
     const { result } = renderHook(() => useServices())
     await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(1))
 

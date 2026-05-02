@@ -434,10 +434,15 @@ describe('usePodIssues', () => {
 
     const { result } = renderHook(() => usePodIssues())
 
-    // With exponential backoff, cascading effect re-runs quickly accumulate failures
+    // Wait for first failure from the initial effect-triggered refetch
     await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(1))
-    // Persistent failures cascade via useEffect dep on consecutiveFailures
-    await waitFor(() => expect(result.current.isFailed).toBe(true))
+
+    // Explicitly trigger additional failures to reach threshold reliably
+    await act(async () => { await result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
+
+    await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(3))
+    expect(result.current.isFailed).toBe(true)
   })
 })
 
