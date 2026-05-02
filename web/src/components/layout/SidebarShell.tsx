@@ -621,7 +621,7 @@ export function SidebarShell({
                   className="w-full flex items-center gap-3 px-3 py-1.5 mt-1 text-xs text-muted-foreground/60 hover:text-muted-foreground hover:bg-secondary/30 rounded-lg transition-colors"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>{t('sidebar.addMore', 'Add more...')}</span>
+                  <span>{t('sidebar.addMore', 'Add more cards...')}</span>
                 </button>
               )}
             </Fragment>
