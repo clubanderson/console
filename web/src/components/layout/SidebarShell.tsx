@@ -662,6 +662,9 @@ export function SidebarShell({
             <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
               {t('labels.clusterStatus')}
             </h4>
+            {deduplicatedClusters.length === 0 ? (
+              <p className="text-xs text-muted-foreground">{t('labels.noClusters')}</p>
+            ) : (
             <div className="space-y-2">
               <button
                 onClick={() => handleClusterStatusClick('healthy')}
@@ -694,6 +697,7 @@ export function SidebarShell({
                 <span className="text-sm font-medium text-yellow-400">{unreachableClusters}</span>
               </button>
             </div>
+            )}
           </div>
         )}
 
@@ -703,14 +707,14 @@ export function SidebarShell({
             <div className="flex items-center justify-center gap-2">
               <div
                 className="flex items-center gap-1 px-2 text-muted-foreground/60"
-                title={t('sidebar.activeViewers', { count: viewerCount })}
+                aria-label={t('sidebar.activeViewers', { count: viewerCount })}
               >
-                <User className={cn('w-3 h-3', viewersError && 'text-red-400')} />
-                <span className="text-2xs tabular-nums">
+                <User className={cn('w-3 h-3', viewersError && 'text-red-400')} aria-hidden="true" />
+                <span className="text-2xs tabular-nums" aria-hidden="true">
                   {viewersError ? '!' : viewersLoading ? '…' : viewerCount}
                 </span>
               </div>
-              <span className="text-2xs text-muted-foreground/40 font-mono" title={`Commit: ${__COMMIT_HASH__}`}>
+              <span className="text-2xs text-muted-foreground/40 font-mono" aria-label={`Commit: ${__COMMIT_HASH__}`}>
                 {__COMMIT_HASH__.substring(0, 7)}
               </span>
             </div>
