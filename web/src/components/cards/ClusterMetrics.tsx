@@ -334,13 +334,16 @@ export const ClusterMetrics = memo(function ClusterMetrics() {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header with metric value and selector — @container responsive */}
+      {/* Current Value */}
       <div className="flex flex-wrap @lg:flex-nowrap items-center justify-between gap-y-2 mb-2">
         <div>
-          <h4 className="text-sm font-medium text-foreground">{config.label}</h4>
-          <p className="text-2xl font-bold text-foreground">
-            {selectedMetric === 'memory' ? realValues.memory.toFixed(1) : Math.round(currentValue)}<span className="text-sm text-muted-foreground">{config.unit}</span>
-          </p>
+          <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('cards:clusterMetrics.currentValue')}</h4>
+          <div className="flex items-baseline gap-2">
+            <p className="text-2xl font-bold text-foreground">
+              {selectedMetric === 'memory' ? realValues.memory.toFixed(1) : Math.round(currentValue)}<span className="text-sm text-muted-foreground">{config.unit}</span>
+            </p>
+            <span className="text-xs text-muted-foreground">· {config.label}</span>
+          </div>
         </div>
         <div className="flex gap-1">
           {(Object.keys(metricConfig) as MetricType[]).map((key) => (
@@ -463,26 +466,31 @@ export const ClusterMetrics = memo(function ClusterMetrics() {
         )}
       </div>
 
-      {/* Stats - show when we have time series data */}
+      {/* Summary Statistics */}
       {data.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-border/50 grid grid-cols-2 @md:grid-cols-3 gap-4">
-          <div>
-            <p className="text-xs text-muted-foreground">{t('cards:clusterMetrics.min')}</p>
-            <p className="text-sm font-medium text-foreground">
-              {(() => { const vals = data.map((d) => d.value); return Math.round(vals.length > 0 ? Math.min(...vals) : 0) })()}{config.unit}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">{t('cards:clusterMetrics.avg')}</p>
-            <p className="text-sm font-medium text-foreground">
-              {Math.round(data.reduce((a, b) => a + b.value, 0) / data.length)}{config.unit}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">{t('cards:clusterMetrics.max')}</p>
-            <p className="text-sm font-medium text-foreground">
-              {(() => { const vals = data.map((d) => d.value); return Math.round(vals.length > 0 ? Math.max(...vals) : 0) })()}{config.unit}
-            </p>
+        <div className="mt-3 pt-3 border-t border-border/50">
+          <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+            {t('cards:clusterMetrics.timePeriodSummary', { timeRange: TIME_RANGE_OPTIONS.find(opt => opt.value === timeRange)?.label })}
+          </h5>
+          <div className="grid grid-cols-2 @md:grid-cols-3 gap-4">
+            <div>
+              <p className="text-xs text-muted-foreground">{t('cards:clusterMetrics.min')}</p>
+              <p className="text-sm font-medium text-foreground">
+                {(() => { const vals = data.map((d) => d.value); return Math.round(vals.length > 0 ? Math.min(...vals) : 0) })()}{config.unit}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">{t('cards:clusterMetrics.avg')}</p>
+              <p className="text-sm font-medium text-foreground">
+                {Math.round(data.reduce((a, b) => a + b.value, 0) / data.length)}{config.unit}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">{t('cards:clusterMetrics.max')}</p>
+              <p className="text-sm font-medium text-foreground">
+                {(() => { const vals = data.map((d) => d.value); return Math.round(vals.length > 0 ? Math.max(...vals) : 0) })()}{config.unit}
+              </p>
+            </div>
           </div>
         </div>
       )}

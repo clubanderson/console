@@ -904,10 +904,17 @@ export function HardwareHealthCard() {
             {sortedInventory.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full text-sm text-muted-foreground py-8">
                 <Server className="w-6 h-6 mb-2 text-muted-foreground/50" />
-                {search || localClusterFilter.length > 0
-                  ? 'No matching nodes'
-                  : 'No nodes tracked yet'}
-                <span className="text-xs mt-1">Waiting for device scan...</span>
+                {search || localClusterFilter.length > 0 ? (
+                  'No matching nodes'
+                ) : (
+                  <div className="text-center">
+                    <div>No hardware devices detected</div>
+                    <div className="text-xs mt-2 max-w-xs text-center leading-4">
+                      This card monitors GPU, NVMe storage, network interfaces, and InfiniBand devices.
+                      Install hardware discovery tools on your nodes or check if devices are properly recognized by Kubernetes.
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </>

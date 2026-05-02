@@ -1204,7 +1204,7 @@
     "infiniband": "InfiniBand",
     "monitoring": "Monitoring",
     "deviceDisappearances": "Device Disappearances",
-    "noDevicesDetected": "No devices detected",
+    "noDevicesDetected": "No hardware devices detected on this node (GPU, NVMe, NICs, or InfiniBand devices)",
     "hideSnoozedAlerts": "Hide snoozed alerts",
     "showSnoozedAlerts": "Show snoozed alerts",
     "snoozeAllVisible": "Snooze all visible alerts",
@@ -1388,7 +1388,9 @@
     "chartWillAppear": "Chart will appear after collecting more data",
     "min": "Min",
     "avg": "Avg",
-    "max": "Max"
+    "max": "Max",
+    "currentValue": "Current Value",
+    "timePeriodSummary": "{{timeRange}} Summary"
   },
   "clusterNetwork": {
     "noNetworkData": "No network data",
@@ -2772,7 +2774,8 @@
     "cores": "cores",
     "totalLabel": "Total {{label}}",
     "overcommitted": "{{used}}/{{total}} overcommitted",
-    "viewDetailsAria": "View resource usage details"
+    "viewDetailsAria": "View resource usage details",
+    "capacityBreakdown": "Capacity Breakdown"
   },
   "serviceExports": {
     "loadFailed": "Failed to load service exports",

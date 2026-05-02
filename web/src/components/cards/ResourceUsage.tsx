@@ -270,23 +270,29 @@ function ResourceUsageInternal() {
         ))}
       </div>
 
-      <div className={`mt-4 pt-3 border-t border-border/50 grid gap-2 text-center`} style={{ gridTemplateColumns: `repeat(${footerCols}, minmax(0, 1fr))` }}>
-        <div>
-          <p className="text-xs text-muted-foreground">{t('resourceUsage.totalCPU')}</p>
-          <p className="text-sm font-medium text-foreground">{totals.cpu.total} {t('resourceUsage.cores')}</p>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground">{t('resourceUsage.totalRAM')}</p>
-          <p className="text-sm font-medium text-foreground">{totals.memory.total} GB</p>
-        </div>
-        {accelerators.map(accel => (
-          <div key={accel.key}>
-            <p className="text-xs text-muted-foreground">{t('resourceUsage.totalLabel', { label: accel.label })}</p>
-            <p className="text-sm font-medium text-foreground">
-              <span className={accel.color}>{accel.data.used}</span>/{accel.data.total}
-            </p>
+      {/* Resource Details */}
+      <div className={`mt-4 pt-3 border-t border-border/50`}>
+        <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+          {t('resourceUsage.capacityBreakdown')}
+        </h5>
+        <div className={`grid gap-2 text-center`} style={{ gridTemplateColumns: `repeat(${footerCols}, minmax(0, 1fr))` }}>
+          <div>
+            <p className="text-xs text-muted-foreground">{t('resourceUsage.totalCPU')}</p>
+            <p className="text-sm font-medium text-foreground">{totals.cpu.total} {t('resourceUsage.cores')}</p>
           </div>
-        ))}
+          <div>
+            <p className="text-xs text-muted-foreground">{t('resourceUsage.totalRAM')}</p>
+            <p className="text-sm font-medium text-foreground">{totals.memory.total} GB</p>
+          </div>
+          {accelerators.map(accel => (
+            <div key={accel.key}>
+              <p className="text-xs text-muted-foreground">{t('resourceUsage.totalLabel', { label: accel.label })}</p>
+              <p className="text-sm font-medium text-foreground">
+                <span className={accel.color}>{accel.data.used}</span>/{accel.data.total}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
