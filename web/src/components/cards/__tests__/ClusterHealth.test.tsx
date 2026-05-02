@@ -12,6 +12,11 @@ vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (k: string, opts?: Record<string, unknown>) => opts ? `${k}:${JSON.stringify(opts)}` : k }),
 }))
 
+const mockUseLocation = vi.fn(() => ({ pathname: '/dashboard', search: '', hash: '', state: null, key: 'default' }))
+vi.mock('react-router-dom', () => ({
+  useLocation: () => mockUseLocation(),
+}))
+
 const mockUseClusters = vi.fn()
 vi.mock('../../../hooks/useMCP', () => ({
   useClusters: () => mockUseClusters(),
@@ -196,6 +201,7 @@ describe('ClusterHealth', () => {
     mockIsAllClustersSelected.mockReturnValue(true)
     mockSelectedClusters.mockReturnValue([])
     mockIsDemoMode.mockReturnValue(false)
+    mockUseLocation.mockReturnValue({ pathname: '/dashboard', search: '', hash: '', state: null, key: 'default' })
     setupDefaults()
   })
 
@@ -278,6 +284,23 @@ describe('ClusterHealth', () => {
       setupDefaults({ clusters })
       render(<ClusterHealth />)
       expect(screen.getAllByText(/42/).length).toBeGreaterThan(0)
+    })
+
+    it('hides stats grid on /clusters route', () => {
+      mockUseLocation.mockReturnValue({ pathname: '/clusters', search: '', hash: '', state: null, key: 'default' })
+      const clusters = [makeCluster({ healthy: true, reachable: true })]
+      setupDefaults({ clusters })
+      render(<ClusterHealth />)
+      expect(screen.queryAllByTitle(/healthyTooltip/).length).toBe(0)
+    })
+
+    it('shows stats grid on non-/clusters routes', () => {
+      mockUseLocation.mockReturnValue({ pathname: '/dashboard', search: '', hash: '', state: null, key: 'default' })
+      const clusters = [makeCluster({ healthy: true, reachable: true })]
+      setupDefaults({ clusters })
+      render(<ClusterHealth />)
+      const healthyTiles = screen.getAllByTitle(/healthyTooltip/)
+      expect(healthyTiles.length).toBeGreaterThan(0)
     })
   })
 
