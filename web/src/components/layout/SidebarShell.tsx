@@ -486,7 +486,9 @@ export function SidebarShell({
                     <Satellite className="w-3.5 h-3.5 text-purple-400 shrink-0" aria-label="Ground Control dashboard" />
                   )}
                   {count != null && (
-                    <span className="text-[10px] text-muted-foreground/40 tabular-nums ml-0.5 shrink-0">{count}</span>
+                    <Tooltip content={t('sidebar.cardCount', { count })} side="right">
+                      <span className="text-[10px] text-muted-foreground/40 tabular-nums ml-0.5 shrink-0">{count}</span>
+                    </Tooltip>
                   )}
                 </span>
               )
