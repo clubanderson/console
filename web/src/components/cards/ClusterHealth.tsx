@@ -403,14 +403,14 @@ export function ClusterHealth() {
                 )}
               </div>
               <div className={`flex items-center ${isMobile ? 'gap-2 pl-6 flex-wrap' : 'gap-3 shrink-0'} text-xs text-muted-foreground min-w-0 overflow-hidden`}>
-                <span className="whitespace-nowrap" title={clusterLoading ? t('common:common.checking') : !clusterUnreachable ? t('clusterHealth.nodesInCluster', { count: cluster.nodeCount || 0 }) : t('clusterHealth.offlineCheckNetwork')}>
-                  {clusterLoading ? <Loader2 className="w-3 h-3 animate-spin inline" /> : !clusterUnreachable ? (cluster.nodeCount || 0) : '-'} {t('common:common.nodes').toLowerCase()}
+                <span className="whitespace-nowrap" title={clusterLoading ? t('common:common.checking') : !clusterUnreachable ? t('clusterHealth.nodesInCluster', { count: Math.max(0, parseInt(String(cluster.nodeCount || 0), 10) || 0) }) : t('clusterHealth.offlineCheckNetwork')}>
+                  {clusterLoading ? <Loader2 className="w-3 h-3 animate-spin inline" /> : !clusterUnreachable ? Math.max(0, parseInt(String(cluster.nodeCount || 0), 10) || 0) : '-'} {t('common:common.nodes').toLowerCase()}
                 </span>
                 {!clusterLoading && !clusterUnreachable && (cluster.cpuCores || 0) > 0 && (
                   <span className="whitespace-nowrap" title={t('clusterHealth.totalCpuCores', { count: cluster.cpuCores })}>{cluster.cpuCores} {t('common:common.cpus')}</span>
                 )}
-                <span className="whitespace-nowrap" title={clusterLoading ? t('common:common.checking') : !clusterUnreachable ? t('clusterHealth.podsRunning', { count: cluster.podCount || 0 }) : t('clusterHealth.offlineCheckNetwork')}>
-                  {clusterLoading ? <Loader2 className="w-3 h-3 animate-spin inline" /> : !clusterUnreachable ? (cluster.podCount || 0) : '-'} {t('common:common.pods').toLowerCase()}
+                <span className="whitespace-nowrap" title={clusterLoading ? t('common:common.checking') : !clusterUnreachable ? t('clusterHealth.podsRunning', { count: Math.max(0, parseInt(String(cluster.podCount || 0), 10) || 0) }) : t('clusterHealth.offlineCheckNetwork')}>
+                  {clusterLoading ? <Loader2 className="w-3 h-3 animate-spin inline" /> : !clusterUnreachable ? Math.max(0, parseInt(String(cluster.podCount || 0), 10) || 0) : '-'} {t('common:common.pods').toLowerCase()}
                 </span>
                 {!clusterLoading && !clusterUnreachable && (gpuByCluster[cluster.name] || 0) > 0 && (
                   <span className="flex items-center gap-1 text-purple-400 whitespace-nowrap" title={t('clusterHealth.gpusAvailable', { count: gpuByCluster[cluster.name] })}>

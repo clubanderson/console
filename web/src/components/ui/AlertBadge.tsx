@@ -410,7 +410,7 @@ export function AlertBadge() {
             <div className="max-h-64 overflow-y-auto scroll-enhanced">
               {displayedAlerts.length === 0 ? (
                 <div className="p-6 text-center text-muted-foreground">
-                  {stats.firing === 0 ? (
+                  {activeAlerts.length === 0 ? (
                     <>
                       <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-400" />
                       <div className="text-sm text-foreground">No Active Alerts</div>
