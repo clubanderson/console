@@ -6,7 +6,7 @@ on:
 
 safe-outputs:
   report-failure-as-issue: false
-  noop: false
+  noop: true
   add-labels:
     max: 3
 ---

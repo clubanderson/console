@@ -11,7 +11,7 @@ on:
 
 safe-outputs:
   report-failure-as-issue: false
-  noop: false
+  noop: true
   assign-to-agent:
   add-comment:
     max: 2
