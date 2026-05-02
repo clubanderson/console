@@ -79,7 +79,7 @@ export function LivePreviewPanel({ tier, t1Config, t2Source, title, width = 6 }:
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto scroll-enhanced p-3">
+      <div className="flex-1 overflow-y-auto scroll-enhanced p-3 pr-4">
         <div
           className={cn(
             'rounded-lg border border-border/50 bg-card/30 p-3 mx-auto transition-all',
