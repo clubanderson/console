@@ -285,7 +285,38 @@ export function HarborStatus() {
     drillToAllStorage('registry', targetDetails)
   }
 
-  // ---------------------------------------------------------------------------
+  
+  const handleTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    const tabs: Tab[] = [PROJECTS_TAB, REPOSITORIES_TAB]
+    const currentIdx = tabs.indexOf(activeTab)
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      e.preventDefault()
+      const next = e.key === 'ArrowRight'
+        ? (currentIdx + 1) % tabs.length
+        : (currentIdx - 1 + tabs.length) % tabs.length
+      setActiveTab(tabs[next])
+      setSearchTerm('')
+      // Focus the new tab button
+      const tablist = (e.target as HTMLElement).closest('[role="tablist"]')
+      const buttons = tablist?.querySelectorAll('[role="tab"]')
+      ;(buttons?.[next] as HTMLElement)?.focus()
+    } else if (e.key === 'Home') {
+      e.preventDefault()
+      setActiveTab(tabs[0])
+      setSearchTerm('')
+      const tablist = (e.target as HTMLElement).closest('[role="tablist"]')
+      const buttons = tablist?.querySelectorAll('[role="tab"]')
+      ;(buttons?.[0] as HTMLElement)?.focus()
+    } else if (e.key === 'End') {
+      e.preventDefault()
+      setActiveTab(tabs[tabs.length - 1])
+      setSearchTerm('')
+      const tablist = (e.target as HTMLElement).closest('[role="tablist"]')
+      const buttons = tablist?.querySelectorAll('[role="tab"]')
+      ;(buttons?.[tabs.length - 1] as HTMLElement)?.focus()
+    }
+  }
+// ---------------------------------------------------------------------------
   // Processing
   // ---------------------------------------------------------------------------
 
@@ -381,6 +412,8 @@ export function HarborStatus() {
             setActiveTab(PROJECTS_TAB)
             setSearchTerm('')
           }}
+          onKeyDown={handleTabKeyDown}
+          tabIndex={activeTab === PROJECTS_TAB ? 0 : -1}
           aria-label={t('harbor.projectsTab', 'Projects')}
           aria-selected={activeTab === PROJECTS_TAB}
           role="tab"
@@ -401,6 +434,8 @@ export function HarborStatus() {
             setActiveTab(REPOSITORIES_TAB)
             setSearchTerm('')
           }}
+          onKeyDown={handleTabKeyDown}
+          tabIndex={activeTab === REPOSITORIES_TAB ? 0 : -1}
           aria-label={t('harbor.repositoriesTab', 'Repositories')}
           aria-selected={activeTab === REPOSITORIES_TAB}
           role="tab"
