@@ -904,10 +904,16 @@ export function HardwareHealthCard() {
             {sortedInventory.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full text-sm text-muted-foreground py-8">
                 <Server className="w-6 h-6 mb-2 text-muted-foreground/50" />
-                {search || localClusterFilter.length > 0
-                  ? 'No matching nodes'
-                  : 'No nodes tracked yet'}
-                <span className="text-xs mt-1">Waiting for device scan...</span>
+                <span className="font-medium">
+                  {search || localClusterFilter.length > 0
+                    ? t('hardwareHealth.noMatchingNodes')
+                    : t('hardwareHealth.noHardwareDetected')}
+                </span>
+                <p className="text-xs text-center mt-2 max-w-xs text-muted-foreground/80">
+                  {search || localClusterFilter.length > 0
+                    ? t('hardwareHealth.noMatchingNodesHint')
+                    : t('hardwareHealth.noHardwareHint')}
+                </p>
               </div>
             )}
           </>

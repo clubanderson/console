@@ -447,43 +447,26 @@ export function ClusterHealth() {
         needsPagination={needsPagination}
       />
 
-      {/* Footer totals */}
-      <div className="mt-4 pt-3 border-t border-border/50 flex flex-wrap justify-between gap-2 text-xs text-muted-foreground min-w-0 overflow-hidden">
-        <span className="whitespace-nowrap truncate" title={t('clusterHealth.totalNodesTitle')}>{totalNodes} {t('clusterHealth.totalNodes')}</span>
-        {totalCPUs > 0 && <span className="whitespace-nowrap truncate" title={t('clusterHealth.totalCpusTitle')}>{totalCPUs} {t('common:common.cpus')}</span>}
-        {totalGPUs > 0 && (
-          <span className="flex items-center gap-1 text-purple-400 whitespace-nowrap" title={t('clusterHealth.totalGpusTitle', { assigned: assignedGPUs, total: totalGPUs })}>
-            <Cpu className="w-3 h-3 shrink-0" />
-            {assignedGPUs}/{totalGPUs} {t('common:common.gpus')}
-          </span>
-        )}
-        <span className="whitespace-nowrap truncate" title={t('clusterHealth.totalPodsTitle')}>{totalPods} {t('clusterHealth.totalPods')}</span>
+      {/* Footer summary — aggregate totals (not shown per-cluster to avoid duplication) */}
+      <div className="mt-4 pt-3 border-t border-border/50">
+        <span className="text-2xs uppercase tracking-wide text-muted-foreground/60 mb-1 block">{t('clusterHealth.aggregateTotals')}</span>
+        <div className="flex flex-wrap justify-between gap-2 text-xs text-muted-foreground min-w-0 overflow-hidden">
+          <span className="whitespace-nowrap truncate" title={t('clusterHealth.totalNodesTitle')}>{totalNodes} {t('clusterHealth.totalNodes')}</span>
+          {totalCPUs > 0 && <span className="whitespace-nowrap truncate" title={t('clusterHealth.totalCpusTitle')}>{totalCPUs} {t('common:common.cpus')}</span>}
+          {totalGPUs > 0 && (
+            <span className="flex items-center gap-1 text-purple-400 whitespace-nowrap" title={t('clusterHealth.totalGpusTitle', { assigned: assignedGPUs, total: totalGPUs })}>
+              <Cpu className="w-3 h-3 shrink-0" />
+              {assignedGPUs}/{totalGPUs} {t('common:common.gpus')}
+            </span>
+          )}
+          <span className="whitespace-nowrap truncate" title={t('clusterHealth.totalPodsTitle')}>{totalPods} {t('clusterHealth.totalPods')}</span>
+        </div>
       </div>
 
       {error && (
         <div className="mt-2 p-2 rounded bg-yellow-500/10 border border-yellow-500/20" title={t('clusterHealth.checkKubeconfigNetwork')}>
           <div className="text-xs text-yellow-400">
             {t('clusterHealth.unableToConnect')}
-          </div>
-        </div>
-      )}
-
-      {/* Show token expired clusters summary if any */}
-      {!error && tokenExpiredClusters > 0 && (
-        <div className="mt-2 p-2 rounded bg-red-500/10 border border-red-500/20" title={t('clusterHealth.reauthenticateToRestore')}>
-          <div className="flex items-center gap-1.5 text-xs text-red-400">
-            <KeyRound className="w-3 h-3" />
-            {t('clusterHealth.clustersExpiredCredentials', { count: tokenExpiredClusters })}
-          </div>
-        </div>
-      )}
-
-      {/* Show network offline clusters summary if any */}
-      {!error && networkOfflineClusters > 0 && (
-        <div className="mt-2 p-2 rounded bg-yellow-500/10 border border-yellow-500/20" title={t('clusterHealth.checkNetworkVpn')}>
-          <div className="flex items-center gap-1.5 text-xs text-yellow-400">
-            <WifiOff className="w-3 h-3" />
-            {t('clusterHealth.clustersOfflineNetwork', { count: networkOfflineClusters })}
           </div>
         </div>
       )}
