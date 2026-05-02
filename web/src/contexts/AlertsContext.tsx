@@ -730,23 +730,8 @@ export function AlertsProvider({ children }: { children: ReactNode }) {
     )
   }, [])
 
-  // Calculate alert statistics — memoize to prevent unstable references in context consumers
-  // #7336 — Compute stats from deduplicated alerts so counters match
-  // the displayed alert list (which uses deduplicateAlerts).
-  const stats: AlertStats = useMemo(() => {
-    const deduped = deduplicateAlerts(alerts, rules)
-    const unacknowledgedFiring = deduped.filter(a => a.status === 'firing' && !a.acknowledgedAt)
-    return {
-      total: deduped.length,
-      firing: unacknowledgedFiring.length,
-      resolved: deduped.filter(a => a.status === 'resolved').length,
-      critical: unacknowledgedFiring.filter(a => a.severity === 'critical').length,
-      warning: unacknowledgedFiring.filter(a => a.severity === 'warning').length,
-      info: unacknowledgedFiring.filter(a => a.severity === 'info').length,
-      acknowledged: deduped.filter(a => a.acknowledgedAt && a.status === 'firing').length }
-  }, [alerts, rules])
-
   // Get active (firing) alerts - exclude acknowledged alerts. Deduplicated via shared helper.
+  // Computed BEFORE stats so stats.firing can reference the same list (#11404).
   const activeAlerts = useMemo(() => {
     const firing = alerts.filter(a => a.status === 'firing' && !a.acknowledgedAt)
     return deduplicateAlerts(firing, rules)
@@ -757,6 +742,26 @@ export function AlertsProvider({ children }: { children: ReactNode }) {
     const acked = alerts.filter(a => a.status === 'firing' && a.acknowledgedAt)
     return deduplicateAlerts(acked, rules)
   }, [alerts, rules])
+
+  // Calculate alert statistics — memoize to prevent unstable references in context consumers.
+  // #11404 — Filter-then-deduplicate for each category so that a resolved
+  // alert can never shadow a firing alert during dedup. stats.firing now
+  // equals activeAlerts.length, keeping the header AlertBadge and dashboard
+  // stat blocks in sync.
+  const stats: AlertStats = useMemo(() => {
+    const resolvedAlerts = deduplicateAlerts(
+      alerts.filter(a => a.status === 'resolved'),
+      rules
+    )
+    return {
+      total: activeAlerts.length + acknowledgedAlerts.length + resolvedAlerts.length,
+      firing: activeAlerts.length,
+      resolved: resolvedAlerts.length,
+      critical: activeAlerts.filter(a => a.severity === 'critical').length,
+      warning: activeAlerts.filter(a => a.severity === 'warning').length,
+      info: activeAlerts.filter(a => a.severity === 'info').length,
+      acknowledged: acknowledgedAlerts.length }
+  }, [alerts, rules, activeAlerts, acknowledgedAlerts])
 
   // Acknowledge an alert — transitions signalType from 'state' to 'acknowledged' (#8750)
   const acknowledgeAlert = useCallback((alertId: string, acknowledgedBy?: string) => {

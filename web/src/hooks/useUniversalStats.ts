@@ -17,6 +17,7 @@ import { useAlerts, useAlertRules } from './useAlerts'
 import { StatBlockValue } from '../components/ui/StatsOverview'
 import { useDrillDownActions } from './useDrillDown'
 import { MS_PER_HOUR } from '../lib/constants/time'
+import { isClusterUnreachable, isClusterHealthy } from '../components/clusters/utils'
 
 // Cost estimation constants (per-month, rough cloud averages)
 const COST_PER_CPU = 30          // USD per vCPU per month
@@ -62,11 +63,13 @@ export function useUniversalStats() {
   const { rules: alertRules } = useAlertRules()
 
   // ─── Cluster-derived values ───
+  // Use the shared isClusterUnreachable / isClusterHealthy helpers so that
+  // universal stats match the Sidebar and ClusterHealth card exactly (#11403).
   const safeClusters = deduplicatedClusters || []
   const totalClusters = safeClusters.length
-  const healthyClusters = safeClusters.filter(c => c.healthy).length
-  const unhealthyClusters = safeClusters.filter(c => !c.healthy).length
-  const unreachableClusters = safeClusters.filter(c => c.reachable === false).length
+  const unreachableClusters = safeClusters.filter(c => isClusterUnreachable(c)).length
+  const healthyClusters = safeClusters.filter(c => !isClusterUnreachable(c) && isClusterHealthy(c)).length
+  const unhealthyClusters = safeClusters.filter(c => !isClusterUnreachable(c) && !isClusterHealthy(c)).length
   const totalNodes = safeClusters.reduce((sum, c) => sum + (c.nodeCount || 0), 0)
   const totalPods = safeClusters.reduce((sum, c) => sum + (c.podCount || 0), 0)
   const totalCPUs = safeClusters.reduce((sum, c) => sum + (c.cpuCores || 0), 0)
