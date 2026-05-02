@@ -330,7 +330,7 @@ export function Layout({ children: _children }: LayoutProps) {
 
   // Banner stacking: each banner's top offset depends on how many banners above it are visible.
   // Dev bar (20px) → Navbar (64px) → Banners (36px each).
-  // Z-index hierarchy: Navbar (z-sticky=200) > Sidebars (z-sidebar=150) > Network banner (z-40) > Demo banner (z-30) > In-cluster / Offline banner (z-20)
+  // Z-index hierarchy: FAB (z-floating=250) > Navbar (z-sticky=200) > Sidebars (z-sidebar=150) > Network banner (z-40) > Demo banner (z-30) > In-cluster / Offline banner (z-20)
   // Desktop sidebars use z-sidebar so navbar dropdowns (z-toast=500 within z-sticky=200 context) paint above them.
   // Mobile mission sidebar stays at z-modal (bottom sheet needs full overlay). MissionBrowser modal stays at z-modal.
   // Stack order: Network (top) → Demo → In-cluster agent / Agent Offline (bottom)
