@@ -12,6 +12,7 @@ import { CardClusterFilter, CardSearchInput, CardAIActions, CardEmptyState } fro
 import { useCardData, useCardFilters, useStatusFilter, commonComparators, type SortDirection } from '../../lib/cards/cardHooks'
 import { useTranslation } from 'react-i18next'
 import { extractImageTag } from '../../lib/gpu'
+import { cn } from '../../lib/cn'
 
 type StatusFilter = 'all' | 'running' | 'deploying' | 'failed'
 type SortByOption = 'status' | 'name' | 'cluster'
@@ -28,19 +29,22 @@ const statusConfig = {
   running: {
     icon: CheckCircle,
     color: 'text-green-400',
-    bg: 'bg-green-500/20',
+    bg: 'bg-green-500/10',
+    borderColor: 'border-green-500/30',
     barColor: 'bg-green-500',
     label: 'Running' },
   deploying: {
     icon: Clock,
     color: 'text-yellow-400',
-    bg: 'bg-yellow-500/20',
+    bg: 'bg-yellow-500/10',
+    borderColor: 'border-yellow-500/30',
     barColor: 'bg-yellow-500',
     label: 'Deploying' },
   failed: {
     icon: XCircle,
     color: 'text-red-400',
-    bg: 'bg-red-500/20',
+    bg: 'bg-red-500/10',
+    borderColor: 'border-red-500/30',
     barColor: 'bg-red-500',
     label: 'Failed' } }
 
@@ -263,15 +267,21 @@ export function DeploymentStatus() {
               <button
                 key={status}
                 onClick={() => handleFilterChange(status)}
-                className={`flex items-center gap-1 px-2 py-1 text-xs rounded-md border transition-colors ${
-                  isActive
-                    ? 'bg-purple-500/20 border-purple-500/30 text-purple-400'
-                    : 'bg-secondary/50 border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
-                }`}
+                className={cn(
+                  'flex items-center gap-1 px-2 py-1 text-xs rounded-md border transition-colors',
+                  isActive && statusStyle
+                    ? `${statusStyle.bg} ${statusStyle.borderColor} ${statusStyle.color}`
+                    : isActive
+                      ? 'bg-accent border-border text-foreground'
+                      : 'bg-secondary/50 border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
+                )}
               >
-                {statusStyle && <statusStyle.icon className={`w-3 h-3 ${isActive ? statusStyle.color : ''}`} />}
+                {statusStyle && <statusStyle.icon className={cn('w-3 h-3', isActive && statusStyle.color)} />}
                 <span className="capitalize">{status}</span>
-                <span className={`px-1 rounded text-2xs ${isActive ? 'bg-purple-500/30' : 'bg-secondary'}`}>
+                <span className={cn(
+                  'px-1 rounded text-2xs',
+                  isActive && statusStyle ? statusStyle.bg : 'bg-secondary'
+                )}>
                   {count}
                 </span>
               </button>
@@ -305,7 +315,13 @@ export function DeploymentStatus() {
                     <div className="flex items-center gap-1.5 mb-0.5 min-w-0">
                       <ClusterBadge cluster={clusterName} />
                       <span className="text-xs text-muted-foreground truncate">{deployment.namespace}</span>
-                      <StatusIcon className={`w-3.5 h-3.5 shrink-0 ${config.color}`} />
+                      <span className={cn(
+                        'inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-2xs font-medium border shrink-0',
+                        config.bg, config.borderColor, config.color
+                      )}>
+                        <StatusIcon className="w-3 h-3" />
+                        {config.label}
+                      </span>
                     </div>
                     <span className="text-sm font-medium text-foreground truncate block">
                       {deployment.name}

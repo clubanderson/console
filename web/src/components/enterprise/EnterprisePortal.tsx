@@ -24,49 +24,49 @@ const VERTICAL_META: Record<string, {
 }> = {
   fintech: {
     icon: Landmark,
-    gradient: 'from-blue-600/20 to-blue-900/20',
+    gradient: 'from-blue-500/10 to-blue-600/10 dark:from-blue-600/20 dark:to-blue-900/20',
     status: 'active',
     score: 91,
     controls: { total: 47, passed: 43 },
   },
   healthcare: {
     icon: Heart,
-    gradient: 'from-rose-600/20 to-rose-900/20',
+    gradient: 'from-rose-500/10 to-rose-600/10 dark:from-rose-600/20 dark:to-rose-900/20',
     status: 'active',
     score: 87,
     controls: { total: 32, passed: 28 },
   },
   government: {
     icon: Shield,
-    gradient: 'from-amber-600/20 to-amber-900/20',
+    gradient: 'from-amber-500/10 to-amber-600/10 dark:from-amber-600/20 dark:to-amber-900/20',
     status: 'active',
     score: 81,
     controls: { total: 58, passed: 47 },
   },
   identity: {
     icon: KeyRound,
-    gradient: 'from-cyan-600/20 to-cyan-900/20',
+    gradient: 'from-cyan-500/10 to-cyan-600/10 dark:from-cyan-600/20 dark:to-cyan-900/20',
     status: 'active',
     score: 78,
     controls: { total: 24, passed: 19 },
   },
   secops: {
     icon: Radar,
-    gradient: 'from-purple-600/20 to-purple-900/20',
+    gradient: 'from-purple-500/10 to-purple-600/10 dark:from-purple-600/20 dark:to-purple-900/20',
     status: 'active',
     score: 74,
     controls: { total: 31, passed: 23 },
   },
   'supply-chain': {
     icon: Container,
-    gradient: 'from-emerald-600/20 to-emerald-900/20',
+    gradient: 'from-emerald-500/10 to-emerald-600/10 dark:from-emerald-600/20 dark:to-emerald-900/20',
     status: 'active',
     score: 68,
     controls: { total: 28, passed: 19 },
   },
   erm: {
     icon: Scale,
-    gradient: 'from-orange-600/20 to-orange-900/20',
+    gradient: 'from-orange-500/10 to-orange-600/10 dark:from-orange-600/20 dark:to-orange-900/20',
     status: 'active',
     score: 72,
     controls: { total: 36, passed: 26 },
@@ -74,7 +74,7 @@ const VERTICAL_META: Record<string, {
 }
 
 function ScoreGauge({ score }: { score: number }) {
-  const color = score >= 80 ? 'text-green-400' : score >= 60 ? 'text-yellow-400' : 'text-red-400'
+  const color = score >= 80 ? 'text-green-600 dark:text-green-400' : score >= 60 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'
   return (
     <div className={`text-3xl font-bold ${color}`}>
       {score}<span className="text-lg">%</span>
@@ -114,11 +114,11 @@ function VerticalCard({ sectionId, title, items, onNavigate }: {
 
       {meta.status === 'active' && meta.controls && (
         <div className="flex items-center gap-4 mb-4 text-xs">
-          <div className="flex items-center gap-1 text-green-400">
+          <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
             <CheckCircle2 className="w-3.5 h-3.5" />
             <span>{meta.controls.passed} passed</span>
           </div>
-          <div className="flex items-center gap-1 text-yellow-400">
+          <div className="flex items-center gap-1 text-yellow-600 dark:text-yellow-400">
             <AlertTriangle className="w-3.5 h-3.5" />
             <span>{meta.controls.total - meta.controls.passed} gaps</span>
           </div>
@@ -195,12 +195,12 @@ export default function EnterprisePortal() {
       <div className="grid grid-cols-4 gap-4 mb-8">
         <div className="rounded-lg border border-border bg-card p-4">
           <div className="text-xs text-muted-foreground mb-1">Overall Score</div>
-          <div className="text-2xl font-bold text-green-400">83%</div>
+          <div className="text-2xl font-bold text-green-600 dark:text-green-400">83%</div>
         </div>
         <div className="rounded-lg border border-border bg-card p-4">
           <div className="text-xs text-muted-foreground mb-1">Active Verticals</div>
           <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-blue-400" />
+            <TrendingUp className="w-4 h-4 text-blue-500 dark:text-blue-400" />
             <span className="text-2xl font-bold text-foreground">7</span>
             <span className="text-xs text-muted-foreground">of 7</span>
           </div>
@@ -208,7 +208,7 @@ export default function EnterprisePortal() {
         <div className="rounded-lg border border-border bg-card p-4">
           <div className="text-xs text-muted-foreground mb-1">Controls Passed</div>
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-green-400" />
+            <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
             <span className="text-2xl font-bold text-foreground">179</span>
             <span className="text-xs text-muted-foreground">of 220</span>
           </div>
@@ -216,7 +216,7 @@ export default function EnterprisePortal() {
         <div className="rounded-lg border border-border bg-card p-4">
           <div className="text-xs text-muted-foreground mb-1">Next Audit</div>
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-yellow-400" />
+            <Clock className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
             <span className="text-lg font-bold text-foreground">14 days</span>
           </div>
         </div>
@@ -237,16 +237,16 @@ export default function EnterprisePortal() {
         {/* Add More tile */}
         <button
           onClick={handleAddMore}
-          className="rounded-xl border-2 border-dashed border-border hover:border-purple-500/50 bg-card/30 hover:bg-purple-500/5 p-5 flex flex-col items-center justify-center gap-3 transition-all group min-h-[200px]"
+          className="rounded-xl border-2 border-dashed border-border hover:border-primary/50 bg-card hover:bg-accent/50 p-5 flex flex-col items-center justify-center gap-3 transition-all group min-h-[200px]"
         >
-          <div className="p-3 rounded-full bg-secondary group-hover:bg-purple-500/20 transition-colors">
-            <Plus className="w-6 h-6 text-muted-foreground group-hover:text-purple-400 transition-colors" />
+          <div className="p-3 rounded-full bg-secondary group-hover:bg-primary/10 transition-colors">
+            <Plus className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
           </div>
           <div className="text-center">
-            <p className="text-sm font-medium text-muted-foreground group-hover:text-purple-300 transition-colors">
+            <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
               Add More
             </p>
-            <p className="text-xs text-muted-foreground/70 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Dashboards, cards &amp; widgets
             </p>
           </div>
