@@ -1,5 +1,42 @@
 # Reviewer Log
 
+## Pass 93 — 2026-05-02T16:15–17:00 UTC
+
+### Trigger
+KICK — nightly=RED, nightlyPlaywright=RED, nightlyRel=RED. 53 unaddressed Copilot comments (47 MEDIUM, 6 LOW). GA4: ksc_http_error at 10.5× baseline (HIGH), ksc_error at 2.3× (MEDIUM).
+
+### RED Analysis
+
+**nightly=RED**: Root cause — `nightly-test-suite.yml` job `timeout-minutes: 150` too tight; the "Run full test suite" step had a nested `timeout-minutes: 120` that was cancelling the job before completion. Individual npm ci and playwright install steps also had 10m caps that consumed budget.
+
+**nightlyPlaywright=RED**: Root cause — `playwright-nightly.yml` `wait-on --timeout 60000` (60s) insufficient for slow CI runners. `playwright.yml` dropped `--shard` argument when `spec_filter` set, causing 4× duplicate runs.
+
+**nightlyRel=RED**: Root cause — `SidebarShell.tsx` used `transition-all` causing layout/transform transitions that blocked Playwright actionability checks. CSS transitions making the /ci-cd link temporarily unclickable during `transition-all` animation.
+
+### Fixes Applied
+
+| Fix | Files | Resolves |
+|-----|-------|---------|
+| Sync upstream/main (20 merged PRs) | Multiple | PRs #11496, #11499, #11536, #11515, #11525, #11526, #11524, #11517 + more |
+| nightly-test-suite timeout: 150→180m, remove nested 120m cap | `nightly-test-suite.yml`, `deploy-test.sh` | #11507 #11509 |
+| Playwright wait-on: 60s→120s; always include --shard | `playwright-nightly.yml`, `playwright.yml` | #11489 #11490 |
+| GA4 ksc_http_error: deduplicate error reporting | `analytics-core.ts` | #11511 |
+| download-artifact: v4→v8.0.1 (Node.js 24) | `kb-nightly-validation.yml` | #11512 |
+| release: native arm64 runners, multi-arch timeout | `release.yml` | #11510 |
+| SidebarShell: transition-all→transition-colors/opacity for stable clicks | `SidebarShell.tsx` | #11521 |
+| Playwright 503 mock, Dashboard refresh test fix | `Dashboard.spec.ts`, `setup.ts`, `post-login-dashboard-ux.spec.ts` | #11520 |
+| Fix orphaned `### Trigger` (missing `## Pass 90` header) | `reviewer_log.md` | Copilot #11496 |
+| Remove redundant `_resetAgentTokenState` import in shared.ts | `shared.ts` | Copilot #11536 |
+
+### GA4
+- `ksc_http_error`: 10.5× baseline → fix merged (analytics-core.ts dedup, #11511)
+- `ksc_error`: 2.3× baseline → monitoring; expected to improve with error dedup fix
+
+### PRs Merged (via sync)
+All 20 commits from upstream/main merged into origin/main via reviewer/sync-main.
+
+---
+
 ## Pass 92 — 2026-05-01T21:00–21:30 UTC
 
 ### Trigger
@@ -62,7 +99,7 @@ Nominal — no anomalies.
 
 ---
 
-
+## Pass 90 — 2026-05-01T09:40–10:00 UTC
 
 ### Trigger
 KICK — nightly=RED, nightlyPlaywright=RED. 73 unaddressed Copilot comments (2 HIGH). GA4 nominal.
