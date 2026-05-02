@@ -1,5 +1,40 @@
 # Reviewer Log
 
+## Pass 119 — 2026-05-02T12:47–13:30 UTC
+
+### Trigger
+KICK — CI=90%, nightly=RED, nightlyPlaywright=RED, nightlyRel=RED. 47 unaddressed Copilot comments. GA4: 1 anomaly.
+
+### RED Analysis
+**nightly=RED / nightlyRel=RED**: Residual from timeout regressions introduced by PRs merged in Pass 117–118. All fixes landed in PR#11483 (merged Pass 118). Nightly will clear at next scheduled run.
+**nightlyPlaywright=RED**: Scanner-owned (locator timeout in post-login dashboard test). No code fix this pass.
+
+### PRs Merged This Pass
+| PR | Title | Notes |
+|----|-------|-------|
+| #11480 | Fix i18n keys, accessibility, and small component bugs | Rebased on main after conflict (ChangeControlAudit type="button", SidebarShell aria-label) |
+| #11479 | Fix dashboard layout, overflow, and re-render issues | Rebased 3× (origin push issue discovered: PR was from fork); fixes min-w-0 overflow, FAB z-index, margin transition |
+
+### Copilot Comments → Issues Filed
+| Issue | Source PRs | Summary |
+|-------|-----------|---------|
+| #11487 | #11439 | Missing i18n keys: shared.dashboardHeader.toolbarLabel, missionSidebar.headerActions, cardWrapper.cardActions |
+| #11488 | #11471 | CardWrapper aria-hidden separator doesn't properly fix run-together header text (#11402 incomplete) |
+| #11489 | #11464 | playwright-nightly wait-on server startup still limited to 60s (not fixed by PR#11464) |
+| #11490 | #11464 | playwright.yml: shard argument dropped when spec_filter is set |
+| #11491 | #11436 | Harbor tablist missing roving tabIndex/arrow-key nav; aria-label overrides visible badge count |
+| #11492 | #11432 | Marketplace: hardcoded dark-only bg-yellow-950 in badge/pill |
+| #11493 | #11436 | AIAgents: install link nested inside disabled button (invalid HTML) |
+| #11494 | #11433 | SidebarShell: redundant custom onKeyDown on semantic button |
+
+### Root Cause Note (PRs from fork)
+PRs originating from `clubanderson/console` fork require `git push origin` (not `git push upstream`) to update the PR head SHA. Pushing to `upstream/kubestellar/console` creates a separate branch that GitHub doesn't associate with the fork PR.
+
+### GA4 Anomaly
+`ksc_http_error` still 3.5× above baseline. No code change indicated.
+
+---
+
 ## Pass 117 — 2026-05-02T11:57–12:10 UTC
 
 ### Trigger
