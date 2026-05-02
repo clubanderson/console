@@ -50,6 +50,7 @@ interface K8sResourceConfig<T> {
   aliasKey: string
   getDemoData: () => T[]
   defaultCategory?: RefreshCategory
+  demoWhenEmpty?: boolean
 }
 
 function createCachedK8sResourceHook<T extends object>(
@@ -62,6 +63,7 @@ function createCachedK8sResourceHook<T extends object>(
     aliasKey,
     getDemoData,
     defaultCategory = 'default',
+    demoWhenEmpty = true,
   } = config
 
   return function useCachedResource(
@@ -77,6 +79,7 @@ function createCachedK8sResourceHook<T extends object>(
       category,
       initialData: [] as T[],
       demoData: getDemoData(),
+      demoWhenEmpty,
       fetcher: async () => {
         if (cluster) {
           const data = await getClusterFetcher()<Record<string, T[]>>(apiEndpoint, { cluster, namespace })

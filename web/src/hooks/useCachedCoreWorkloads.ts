@@ -193,6 +193,7 @@ export function useCachedPods(
     category,
     initialData: [] as PodInfo[],
     demoData: getDemoPods(),
+    demoWhenEmpty: true,
     fetcher: async () => {
       let pods: PodInfo[]
       if (cluster) {
@@ -244,6 +245,7 @@ export function useCachedAllPods(
     category,
     initialData: [] as PodInfo[],
     demoData: getDemoPods(),
+    demoWhenEmpty: true,
     fetcher: async () => {
       if (cluster) {
         const raw = await getClusterFetcher()<unknown>('pods', { cluster })
@@ -285,6 +287,7 @@ export function useCachedEvents(
     category,
     initialData: [] as ClusterEvent[],
     demoData: getDemoEvents(),
+    demoWhenEmpty: true,
     fetcher: async () => {
       // Try agent first (direct kubectl proxy — works before backend auth)
       if (clusterCacheRef.clusters.length > 0 && !isAgentUnavailable()) {
@@ -384,6 +387,7 @@ export function useCachedPodIssues(
     category,
     initialData: [] as PodIssue[],
     demoData: getDemoPodIssues(),
+    demoWhenEmpty: true,
     fetcher: async () => {
       let issues: PodIssue[]
 
@@ -473,6 +477,7 @@ export function useCachedDeploymentIssues(
     category,
     initialData: [] as DeploymentIssue[],
     demoData: getDemoDeploymentIssues(),
+    demoWhenEmpty: true,
     fetcher: async () => {
       // Try agent first — derive deployment issues from deployment data
       if (clusterCacheRef.clusters.length > 0 && !isAgentUnavailable()) {
@@ -549,6 +554,7 @@ export function useCachedDeployments(
     category,
     initialData: [] as Deployment[],
     demoData: getDemoDeployments(),
+    demoWhenEmpty: true,
     fetcher: async () => {
       // Try agent first (fast, no backend needed) — skip if agent is unavailable
       if (clusterCacheRef.clusters.length > 0 && !isAgentUnavailable()) {
@@ -630,6 +636,7 @@ export function useCachedServices(
     category,
     initialData: [] as Service[],
     demoData: getDemoServices(),
+    demoWhenEmpty: true,
     fetcher: async () => {
       if (cluster) {
         const data = await getClusterFetcher()<{ services: Service[] }>('services', { cluster, namespace })
@@ -671,6 +678,7 @@ export function useCachedSecurityIssues(
     category,
     initialData: [] as SecurityIssue[],
     demoData: getDemoSecurityIssues(),
+    demoWhenEmpty: true,
     fetcher: async () => {
       // Try kubectl proxy first (uses agent to run kubectl commands) — skip if agent is unavailable
       if (clusterCacheRef.clusters.length > 0 && !isAgentUnavailable()) {
@@ -740,6 +748,7 @@ export function useCachedWorkloads(
     category,
     initialData: [] as Workload[],
     demoData: getDemoWorkloads(),
+    demoWhenEmpty: true,
     fetcher: async () => {
       // Try agent first (fast, no backend needed)
       const agentData = await fetchWorkloadsFromAgent()
