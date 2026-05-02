@@ -1,5 +1,55 @@
 # Reviewer Log
 
+## Pass 117 — 2026-05-02T11:57–12:10 UTC
+
+### Trigger
+KICK — nightly=RED (deploy-test timeout), nightlyPlaywright=RED. 42 unaddressed Copilot comments (0 HIGH, 38 MEDIUM, 4 LOW). GA4: 1 anomaly (ksc_http_error ratio 3.5×).
+
+### RED Analysis
+
+**nightly=RED — deploy-test timeout (300s wall-clock)**:
+Root cause: `deploy-test` had no timeout override in `PLAYWRIGHT_SUITE_TIMEOUT_OVERRIDES` — the default 300s cap killed the suite mid-run (Playwright per-test timeout also 300s; combined setup + 11 tests = >300s).
+Fix: Already committed to `upstream/main` as `2d9c8d7d4` (`["deploy-test"]=900`). PRs #11461 and #11464 (additional nightly stability improvements) merged this pass.
+
+**nightlyPlaywright=RED**: Scanner-owned. Filed no code fixes. PRs #11461 + #11464 include Playwright workflow improvements (artifact download version fix, timeout increases, --workers=1).
+
+### PRs Merged This Pass
+
+| PR | Title | Notes |
+|----|-------|-------|
+| #11461 | Fix nightly test suite and workflow failures | Artifact download v4→v8, deploy-test 600s, playwright retries |
+| #11464 | Stabilize nightly test workflows | nightly-test-suite 150m timeout, step timeouts, playwright 45/35m |
+| #11471 | Fix AI predictor text concat, cluster status values, alert state | Supersedes #11470 |
+
+### PRs Closed
+
+| PR | Reason |
+|----|--------|
+| #11470 | Superseded by #11471 (which also fixes #11402) |
+
+### Copilot Comments → Issues Filed
+
+| Issue | Source PR | Summary |
+|-------|-----------|---------|
+| #11472 | #11439 | Missing i18n keys: labels.noClusters, toolbarLabel, headerActions, cardActions |
+| #11473 | #11437 | WorkloadMonitorDiagnose: phase='failed' never set; empty repair list UX wrong |
+| #11474 | #11463 | ClusterHealth hardcoded '/clusters' path → use route constant |
+| #11475 | #11469 | Tab buttons missing type="button" in ChangeControlAudit + SegregationOfDuties |
+| #11476 | #11391 | min-w-[600px] overflow in dashboard/layout components |
+| #11477 | #11436 | Accessibility: clickable divs lack keyboard nav; aria-label hides badge counts |
+| #11478 | #11435 | SidebarShell title attribute on non-focusable spans (inaccessible) |
+
+### Remaining Open PRs
+
+| PR | Status | Notes |
+|----|--------|-------|
+| #11466 | RED — 6 failing checks (build, TTFI, visual regression) | Not merged |
+
+### GA4 Anomaly
+`ksc_http_error` 3.5× above baseline (2 recent vs 0.6 daily avg). Medium severity. No code change indicated — monitoring.
+
+---
+
 ## Pass 92 — 2026-05-01T21:00–21:30 UTC
 
 ### Trigger
