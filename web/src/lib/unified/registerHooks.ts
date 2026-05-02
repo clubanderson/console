@@ -497,9 +497,9 @@ const DEMO_ACTIVE_ALERTS = [
 // Storage overview demo data
 const DEMO_STORAGE_OVERVIEW = {
   totalCapacity: 2048,
-  used: 1234,
-  pvcs: 45,
-  unbound: 3 }
+  usedStorage: 1234,
+  pvcCount: 45,
+  unboundCount: 3 }
 
 // Network overview demo data
 const DEMO_NETWORK_OVERVIEW = {
@@ -933,7 +933,58 @@ function useActiveAlerts() {
 }
 
 function useStorageOverview() {
-  return useDemoDataHook([DEMO_STORAGE_OVERVIEW])
+  const { pvcs, isLoading: pvcsLoading } = usePVCs()
+  const { pvs, isLoading: pvsLoading } = usePVs()
+  
+  // Calculate storage stats
+  const calculateStats = () => {
+    if (!pvcs || !pvs) {
+      return DEMO_STORAGE_OVERVIEW
+    }
+    
+    // Calculate total capacity from PVs
+    let totalCapacityGi = 0
+    for (const pv of (pvs || [])) {
+      if (pv.capacity) {
+        const match = pv.capacity.match(/(\d+)Gi/)
+        if (match) {
+          totalCapacityGi += parseInt(match[1], 10)
+        }
+      }
+    }
+    
+    // Calculate used storage and unbound count from PVCs
+    let usedStorageGi = 0
+    let unboundCount = 0
+    const pvcCount = (pvcs || []).length
+    
+    for (const pvc of (pvcs || [])) {
+      if (pvc.status !== 'Bound') {
+        unboundCount += 1
+      }
+      if (pvc.capacity) {
+        const match = pvc.capacity.match(/(\d+)Gi/)
+        if (match) {
+          usedStorageGi += parseInt(match[1], 10)
+        }
+      }
+    }
+    
+    return {
+      totalCapacity: totalCapacityGi,
+      usedStorage: usedStorageGi,
+      pvcCount,
+      unboundCount,
+    }
+  }
+  
+  const data = pvcsLoading || pvsLoading ? DEMO_STORAGE_OVERVIEW : calculateStats()
+  
+  return {
+    data,
+    isLoading: pvcsLoading || pvsLoading,
+    error: null,
+    refetch: () => {} }
 }
 
 function useNetworkOverview() {
