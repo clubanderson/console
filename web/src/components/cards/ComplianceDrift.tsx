@@ -177,6 +177,9 @@ export function ComplianceDrift({ config: _config }: CardConfig) {
           <Loader2 className="w-6 h-6 animate-spin opacity-50" />
         )}
         <p>{t('complianceDrift.scanning')}</p>
+        <p className="text-xs text-muted-foreground/60">
+          {t('complianceDrift.scanningHint', { defaultValue: 'Checking compliance tools across clusters…' })}
+        </p>
       </div>
     )
   }
@@ -199,8 +202,24 @@ export function ComplianceDrift({ config: _config }: CardConfig) {
     )
   }
 
-  // Empty state: all clusters within baseline (only show after all hooks finish)
+  // Empty state: no compliance tools detected or all clusters within baseline
   if (!isLoading && !isRefreshing && drifts.length === 0) {
+    const hasAnyStatuses = Object.keys(kyvernoStatuses || {}).length > 0 ||
+      Object.keys(trivyStatuses || {}).length > 0 ||
+      Object.keys(kubescapeStatuses || {}).length > 0
+
+    if (!hasAnyStatuses) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full gap-2 text-center p-4">
+          <Info className="w-8 h-8 text-muted-foreground opacity-50" />
+          <p className="text-sm font-medium text-foreground">{t('complianceDrift.noToolsDetected', { defaultValue: 'No compliance tools detected' })}</p>
+          <p className="text-xs text-muted-foreground">
+            {t('complianceDrift.noToolsHint', { defaultValue: 'Install Kyverno, Trivy, or Kubescape to enable drift detection.' })}
+          </p>
+        </div>
+      )
+    }
+
     return (
       <div className="flex flex-col items-center justify-center h-full gap-2 text-center p-4">
         <CheckCircle2 className="w-8 h-8 text-green-400" />

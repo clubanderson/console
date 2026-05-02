@@ -170,7 +170,17 @@ export const ChangeControlAuditContent = memo(function ChangeControlAuditContent
               </Select>
             </div>
           </div>
-          {(filteredChanges || []).map(change => {
+          {(filteredChanges || []).length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <CheckCircle2 className="w-8 h-8 text-emerald-400 opacity-60 mb-3" />
+              <p className="text-sm font-medium text-zinc-200">No change records found</p>
+              <p className="text-xs text-zinc-500 mt-1">
+                {filterApproval !== 'all'
+                  ? `No changes with status "${filterApproval}". Try changing the filter.`
+                  : 'Change records will appear here when changes are detected across your clusters.'}
+              </p>
+            </div>
+          ) : (filteredChanges || []).map(change => {
             const approval = APPROVAL_STYLES[change.approval_status] ?? APPROVAL_STYLES.pending
             return (
               <div key={change.id} className="rounded-lg border border-zinc-700/30 bg-zinc-800/50 p-4">
