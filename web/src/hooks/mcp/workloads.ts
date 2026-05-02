@@ -2,9 +2,9 @@
  * Workloads hooks module - orchestrator that re-exports query and subscription functionality.
  *
  * This module was split from a 1880-line god module into:
- * - workloadQueries.ts: Query hooks and their dependencies (~700 lines)
- * - workloadSubscriptions.ts: Subscription state management (~300 lines)
- * - workloads.ts: Type definitions and orchestration (~400 lines)
+ * - workloadQueries.ts: Query hooks and their dependencies (~1852 lines)
+ * - workloadSubscriptions.ts: Subscription state management (~37 lines)
+ * - workloads.ts: Backward-compatible re-exports and orchestration (~63 lines)
  *
  * Issue #11546: Decompose god module for better maintainability.
  */
@@ -24,6 +24,7 @@ export type {
   UseHPAsResult,
   UseReplicaSetsResult,
   UseStatefulSetsResult,
+  UseDaemonSetsResult,
   UseCronJobsResult,
   UsePodLogsResult,
 } from './workloadQueries'

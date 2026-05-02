@@ -885,7 +885,13 @@ function isHttpErrorThrottled(httpStatus: string, page: string): boolean {
   const key = `${page}:${httpStatus}`
   const lastEmit = recentHttpErrorEmissions.get(key)
   if (lastEmit && Date.now() - lastEmit < HTTP_ERROR_THROTTLE_MS) return true
-  recentHttpErrorEmissions.set(key, Date.now())
+  // Only record the timestamp when send() will actually fire. If analytics is
+  // not yet initialized or the user hasn't interacted, send() silently drops
+  // the event — recording the timestamp now would suppress the next real
+  // emission that should be sent, causing under-reporting.
+  if (initialized && userHasInteracted) {
+    recentHttpErrorEmissions.set(key, Date.now())
+  }
   // Prevent unbounded map growth
   if (recentHttpErrorEmissions.size > 100) {
     const now = Date.now()

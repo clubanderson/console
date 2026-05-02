@@ -10,6 +10,24 @@ import (
 	"testing"
 )
 
+// isolateConfigManager replaces the global config manager with a fresh
+// isolated instance backed by a temp directory. This prevents tests from
+// picking up keys from ~/.kc/config.yaml on developer or CI machines, where
+// in-memory keys (lowest precedence) would otherwise be silently overridden
+// by a pre-existing on-disk config.
+func isolateConfigManager(t *testing.T) *ConfigManager {
+	t.Helper()
+	cm := &ConfigManager{
+		configPath:  t.TempDir() + "/config.yaml",
+		config:      &AgentConfig{Agents: make(map[string]AgentKeyConfig)},
+		keyValidity: make(map[string]bool),
+	}
+	old := globalConfigManager
+	globalConfigManager = cm
+	t.Cleanup(func() { globalConfigManager = old })
+	return cm
+}
+
 func TestChatViaOpenAICompatible(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Authorization") != "Bearer test-key" {
@@ -42,7 +60,7 @@ func TestChatViaOpenAICompatible(t *testing.T) {
 	}))
 	defer server.Close()
 
-	cm := GetConfigManager()
+	cm := isolateConfigManager(t)
 	cm.SetAPIKeyInMemory("test-provider", "test-key")
 
 	req := &ChatRequest{Prompt: "Hi"}
@@ -61,6 +79,10 @@ func TestChatViaOpenAICompatible(t *testing.T) {
 
 func TestStreamViaOpenAICompatible(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "Bearer test-key" {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 		w.Header().Set("Content-Type", "text/event-stream")
 		fmt.Fprintf(w, "data: %s\n\n", `{"choices":[{"delta":{"content":"Hello"}}],"usage":null}`)
 		fmt.Fprintf(w, "data: %s\n\n", `{"choices":[{"delta":{"content":" world"}}],"usage":null}`)
@@ -69,7 +91,7 @@ func TestStreamViaOpenAICompatible(t *testing.T) {
 	}))
 	defer server.Close()
 
-	cm := GetConfigManager()
+	cm := isolateConfigManager(t)
 	cm.SetAPIKeyInMemory("test-provider", "test-key")
 
 	var chunks []string

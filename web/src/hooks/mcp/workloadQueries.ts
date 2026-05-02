@@ -1501,7 +1501,7 @@ export function useReplicaSets(cluster?: string, namespace?: string): UseReplica
         })
         if (response.ok) {
           const data = await response.json()
-          setReplicaSets(data.replicaSets || [])
+          setReplicaSets(data.replicasets || [])
           setError(null)
           setConsecutiveFailures(0)
           setIsLoading(false)
@@ -1524,7 +1524,7 @@ export function useReplicaSets(cluster?: string, namespace?: string): UseReplica
       const resp = await agentFetch(`${LOCAL_AGENT_HTTP_URL}/replicasets?${params}`)
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
       const data = await resp.json()
-      setReplicaSets(data.replicaSets || [])
+      setReplicaSets(data.replicasets || [])
       setError(null)
       setConsecutiveFailures(0)
     } catch (err: unknown) {
@@ -1814,7 +1814,7 @@ if (typeof window !== 'undefined') {
   registerCacheReset('workloads', () => {
     // Set resetting flag to trigger skeleton display in all subscribed hooks
     setWorkloadsSharedState({
-      cacheVersion: Math.random(), // Change value to force notification
+      cacheVersion: Date.now(), // Monotonically increasing to force notification
       isResetting: true,
     })
     notifyWorkloadsSubscribers()
