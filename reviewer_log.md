@@ -1,5 +1,64 @@
 # Reviewer Log
 
+## Pass 112 — 2026-05-02T09:07 UTC
+
+### Trigger
+KICK — full reviewer pass: coverage, CI health, release freshness, brew/helm. Check PR #11416 Netlify failures. Check PRs #11417–#11419 CI progress.
+
+### Dashboard
+
+| Metric | Value | Status |
+|--------|-------|--------|
+| Coverage | 91% (`coverage-last.txt`) | ✅ At target |
+| CI Health | `ciPassRate=100%` (daily.json) | ✅ GREEN |
+| Brew formula | `brewFresh=1` (target: 1) | ✅ Fresh |
+| Helm chart | Latest local: `v0.3.24-nightly.20260501`; `v0.0.1-nightly.20260502` tag on fork/main | ⚠️ Upstream `v0.3.24-nightly.20260502` not locally visible (unfetchable — no upstream creds) |
+| deploy:vllm-d | Inferred from `ciPassRate=100%` | ✅ GREEN |
+| deploy:pok-prod01 | Inferred from `ciPassRate=100%` | ✅ GREEN |
+| GA4 Errors (30m) | 0 anomalies | ✅ GREEN |
+
+### Merges
+- **PR #11390** — already merged by scanner ✅
+- **PR #11391** — already merged by scanner ✅
+
+### PR #11416 — Netlify Build FAILURE (FIXED)
+
+**Root cause:** `SidebarShell.tsx` — the fix moved `</NavLink>` before the drag-handle `<span>`, making two adjacent JSX siblings in the ternary false-branch:
+```jsx
+) : (
+  <NavLink>...</NavLink>      ← element 1
+  {!isCollapsed && canDrag && <span>...</span>}  ← element 2 — INVALID
+)}
+```
+Adjacent JSX elements inside a ternary are not valid without a wrapping fragment. This caused Vite/esbuild to reject the file, failing the Netlify deploy-preview build. All derivative checks (`Header rules`, `Redirect rules`, `Pages changed`) failed as a consequence.
+
+**Fix:** Wrapped both siblings in a React fragment `<>...</<>`:
+```jsx
+) : (<>
+  <NavLink>...</NavLink>
+  {!isCollapsed && canDrag && <span>...</span>}
+</>)}
+```
+Committed `3e420c1f1` on `fix/11397` and pushed. Netlify re-deploy triggered. The PR still has `mergeable=CONFLICTING` (merge conflict with main) — scanner needs to rebase after #11390/#11391 landed.
+
+### PRs #11417–#11420 CI Status
+
+All four PRs have:
+- **All GitHub Actions checks: PASS** ✅
+- **All Netlify checks: PASS** ✅  
+- **`tide`: ERROR** (merge conflicts with updated main after #11390/#11391 merged)
+- **`mergeable=CONFLICTING`**
+
+No source-code failures — conflicts are the only blocker. Scanner needs to rebase these branches against main.
+
+### Copilot Comments (59 unaddressed)
+All 3 HIGH items confirmed resolved in HEAD (unchanged from prior passes).
+
+### Outstanding
+- **PR #11416**: Netlify build fix pushed — awaiting CI re-run + scanner rebase
+- **PRs #11417–#11420**: CI all green, blocked only on merge conflicts — scanner to rebase
+- **nightlyPlaywright=RED**: scanner owns (Issue #11348)
+
 ## Pass 111 — 2026-05-02T06:12 UTC
 
 ### Trigger
