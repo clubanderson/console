@@ -40,8 +40,8 @@ const DIFFICULTY_CONFIG = {
   advanced: { label: 'Advanced', color: 'text-red-400 bg-red-950', stars: 3 } } as const
 
 const MATURITY_CONFIG = {
-  graduated: { label: 'Graduated', color: 'text-green-400 bg-green-950 border-green-800' },
-  incubating: { label: 'Incubating', color: 'text-blue-400 bg-blue-950 border-blue-800' } } as const
+  graduated: { label: 'Graduated', color: 'text-green-600 bg-green-100 border-green-300 dark:text-green-400 dark:bg-green-950 dark:border-green-800' },
+  incubating: { label: 'Incubating', color: 'text-blue-600 bg-blue-100 border-blue-300 dark:text-blue-400 dark:bg-blue-950 dark:border-blue-800' } } as const
 
 // --- CNCF Progress Banner ---
 function CNCFProgressBanner({ stats }: { stats: CNCFStats }) {

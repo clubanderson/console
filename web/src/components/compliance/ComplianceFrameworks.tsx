@@ -45,14 +45,14 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function SeverityBadge({ severity }: { severity: string }) {
-  const colors: Record<string, string> = {
-    critical: 'bg-red-500/20 text-red-300 border-red-500/30',
-    high:     'bg-orange-500/20 text-orange-300 border-orange-500/30',
-    medium:   'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
-    low:      'bg-zinc-500/20 text-zinc-300 border-zinc-500/30',
+const SEVERITY_CONFIG: Record<string, string> = {
+    critical: 'bg-red-100 text-red-800 border-red-300 dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/30',
+    high:     'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/30',
+    medium:   'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-500/20 dark:text-yellow-300 dark:border-yellow-500/30',
+    low:      'bg-gray-100 text-gray-800 border-gray-300 dark:bg-zinc-500/20 dark:text-zinc-300 dark:border-zinc-500/30',
   }
   return (
-    <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded border ${colors[severity] ?? colors.low}`}>
+    <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded border ${SEVERITY_CONFIG[severity] ?? SEVERITY_CONFIG.low}`}>
       {severity.toUpperCase()}
     </span>
   )
@@ -122,11 +122,11 @@ function ControlAccordion({ control }: { control: ControlResult }) {
       >
         <Icon className="w-4 h-4 text-muted-foreground shrink-0" />
         <StatusBadge status={control.status} />
-        <span className="text-sm font-medium text-zinc-200 flex-1 truncate">{control.id}: {control.name}</span>
-        <span className="text-xs text-zinc-500">{control.checks.length} checks</span>
+        <span className="text-sm font-medium text-foreground flex-1 truncate">{control.id}: {control.name}</span>
+        <span className="text-xs text-muted-foreground">{control.checks.length} checks</span>
       </button>
       {open && (
-        <div className="px-4 py-2 space-y-1.5 bg-zinc-950/50">
+        <div className="px-4 py-2 space-y-1.5 bg-card/50 dark:bg-zinc-950/50">
           {control.checks.map(ch => <CheckRow key={ch.id} check={ch} />)}
         </div>
       )}
@@ -141,18 +141,18 @@ function FrameworkCard({ fw, selected, onSelect }: { fw: Framework; selected: bo
     <button
       className={`text-left p-4 rounded-lg border transition-all ${
         selected
-          ? 'border-blue-500/60 bg-blue-500/10 shadow-lg shadow-blue-500/5'
-          : 'border-zinc-800 bg-zinc-900/60 hover:border-zinc-700'
+          ? 'border-primary/60 bg-primary/10 shadow-lg shadow-primary/5'
+          : 'border-border bg-card/60 hover:border-border/70'
       }`}
       onClick={onSelect}
       type="button"
     >
       <div className="flex items-center gap-2 mb-1">
-        <Shield className="w-4 h-4 text-blue-400" />
-        <span className="text-sm font-semibold text-zinc-100">{fw.name}</span>
+        <Shield className="w-4 h-4 text-primary" />
+        <span className="text-sm font-semibold text-foreground">{fw.name}</span>
       </div>
       <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{fw.description}</p>
-      <div className="flex gap-3 text-[11px] text-zinc-500">
+      <div className="flex gap-3 text-[11px] text-muted-foreground">
         <span>{fw.controls} controls</span>
         <span>{fw.checks} checks</span>
         <span className="capitalize">{fw.category}</span>
