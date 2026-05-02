@@ -491,12 +491,12 @@ export function SidebarShell({
                 </span>
               )
             })()}
+          </NavLink>
             {!isCollapsed && canDrag && (
               <span className="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity bg-background/80 backdrop-blur-xs rounded px-1">
                 {!PROTECTED_SIDEBAR_IDS.includes(item.id) && (
-                  <span
-                    role="button"
-                    tabIndex={0}
+                  <button
+                    type="button"
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeItem(item.id) }}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); removeItem(item.id) } }}
                     className="p-1 rounded hover:bg-red-500/20 hover:text-red-400 text-muted-foreground/50 transition-colors"
@@ -504,11 +504,12 @@ export function SidebarShell({
                     aria-label={t('sidebar.removeFromSidebar')}
                   >
                     <X className="w-3.5 h-3.5" aria-hidden="true" />
-                  </span>
+                  </button>
                 )}
                 <span
                   className="p-1 rounded hover:bg-secondary text-muted-foreground/50 hover:text-muted-foreground cursor-grab active:cursor-grabbing transition-colors"
                   onMouseDown={(e) => e.stopPropagation()}
+                  aria-label={t('sidebar.dragToReorder', 'Drag to reorder')}
                 >
                   <GripVertical
                     className="w-4 h-4"
@@ -517,7 +518,6 @@ export function SidebarShell({
                 </span>
               </span>
             )}
-          </NavLink>
         )}
       </div>
       </Tooltip>
@@ -747,6 +747,8 @@ export function SidebarShell({
       {/* Collapse + Pin controls */}
       {features.collapsePin !== false && !isMobile && !isMissionFullScreen && (
         <div
+          role="group"
+          aria-label={t('layout.sidebar.sidebarControls', 'Sidebar controls')}
           className="fixed top-18 z-sidebar flex flex-col gap-1.5 items-center transition-[left] duration-300 bg-background border border-border/50 rounded-full p-1 shadow-md"
           style={{ left: sidebarWidth + SIDEBAR_CONTROLS_LEFT_OFFSET_PX }}
         >
@@ -765,6 +767,7 @@ export function SidebarShell({
               }
             }}
             aria-expanded={!config.collapsed}
+            aria-label={config.collapsed ? t('layout.sidebar.expandSidebar') : t('layout.sidebar.collapseSidebar')}
             className="hidden md:flex items-center justify-center w-8 h-8 rounded-full bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors"
             title={config.collapsed ? t('layout.sidebar.expandSidebar') : t('layout.sidebar.collapseSidebar')}
           >
@@ -773,6 +776,7 @@ export function SidebarShell({
           <button
             onClick={toggleSidebarPin}
             aria-pressed={isPinned}
+            aria-label={isPinned ? t('layout.sidebar.unpinSidebar') : t('layout.sidebar.pinSidebar')}
             className={cn(
               "flex items-center justify-center w-8 h-8 rounded-full transition-colors",
               isPinned
@@ -781,7 +785,7 @@ export function SidebarShell({
             )}
             title={isPinned ? t('layout.sidebar.unpinSidebar') : t('layout.sidebar.pinSidebar')}
           >
-            {isPinned ? <Pin className="w-3.5 h-3.5" /> : <PinOff className="w-3.5 h-3.5" />}
+            {isPinned ? <Pin className="w-3.5 h-3.5" aria-hidden="true" /> : <PinOff className="w-3.5 h-3.5" aria-hidden="true" />}
           </button>
         </div>
       )}

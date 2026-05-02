@@ -101,6 +101,7 @@
     "snoozeExpires": "Expires {{time}}",
     "addMore": "Add more...",
     "removeFromSidebar": "Remove from sidebar",
+    "dragToReorder": "Drag to reorder",
     "doubleClickRename": "Double-click to rename",
     "snoozedItems": "Snoozed Items",
     "noSnoozedItems": "No snoozed items",
@@ -3692,8 +3693,9 @@
     "sidebar": {
       "expandSidebar": "Expand sidebar",
       "collapseSidebar": "Collapse sidebar",
-      "unpinSidebar": "Unpin sidebar (auto-collapse on mouse leave)",
-      "pinSidebar": "Pin sidebar open"
+      "unpinSidebar": "Unpin sidebar",
+      "pinSidebar": "Pin sidebar",
+      "sidebarControls": "Sidebar controls"
     },
     "navbar": {
       "filtersActive": "Filters active - click to modify",
