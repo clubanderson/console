@@ -127,7 +127,7 @@ function CNCFProgressBanner({ stats }: { stats: CNCFStats }) {
               href={ISSUES_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-yellow-950 hover:bg-yellow-900 text-yellow-400 rounded-md transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-yellow-500/15 hover:bg-yellow-500/25 text-yellow-400 rounded-md transition-colors"
             >
               <HandHelping className="w-3 h-3" />
               Browse Issues
@@ -207,7 +207,7 @@ function MarketplaceCard({ item, onInstall, onRemove, isInstalled }: {
         )}
         {/* Help Wanted badge */}
         {isHelpWanted && (
-          <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-1 text-2xs font-semibold bg-yellow-950 text-yellow-300 border border-yellow-800 rounded-md">
+          <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-1 text-2xs font-semibold bg-yellow-500/15 text-yellow-300 border border-yellow-500/30 rounded-md">
             <HandHelping className="w-3 h-3" />
             Help Wanted
           </div>
@@ -297,7 +297,7 @@ function MarketplaceCard({ item, onInstall, onRemove, isInstalled }: {
               href={item.issueUrl || ISSUES_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-yellow-950 hover:bg-yellow-900 text-yellow-400 rounded-md transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-yellow-500/15 hover:bg-yellow-500/25 text-yellow-400 rounded-md transition-colors"
             >
               <Sparkles className="w-3 h-3" />
               Contribute
@@ -490,7 +490,7 @@ function MarketplaceRow({ item, onInstall, onRemove, isInstalled }: {
             </span>
           )}
           {isHelpWanted && (
-            <span className="text-[9px] font-semibold px-1.5 py-0.5 bg-yellow-950 text-yellow-300 border border-yellow-800 rounded">
+            <span className="text-[9px] font-semibold px-1.5 py-0.5 bg-yellow-500/15 text-yellow-300 border border-yellow-500/30 rounded">
               Help Wanted
             </span>
           )}
@@ -524,7 +524,7 @@ function MarketplaceRow({ item, onInstall, onRemove, isInstalled }: {
             href={item.issueUrl || ISSUES_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium bg-yellow-950 hover:bg-yellow-900 text-yellow-400 rounded transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium bg-yellow-500/15 hover:bg-yellow-500/25 text-yellow-400 rounded transition-colors"
           >
             <Sparkles className="w-3 h-3" />
             Contribute
@@ -969,7 +969,7 @@ export function Marketplace() {
               href={ISSUES_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-yellow-950 hover:bg-yellow-900 text-yellow-400 rounded-md transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-yellow-500/15 hover:bg-yellow-500/25 text-yellow-400 rounded-md transition-colors"
             >
               <HandHelping className="w-3 h-3" />
               Browse Issues
