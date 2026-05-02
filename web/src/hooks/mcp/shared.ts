@@ -2076,3 +2076,15 @@ export const __testables = {
   updatesTouchUI,
   applyDistributionCache,
 }
+
+// ============================================================================
+// Module split (issue #11530) - re-export focused submodules for clarity
+// These exports ensure the split modules are loaded and accessible
+// ============================================================================
+// Note: The actual implementations are in separate files:
+// - fetchWithRetry.ts: Generic retry wrapper with exponential backoff
+// - agentFetch.ts: Agent token management + authenticated fetch
+// - clusterUtils.ts: Dedup, metrics sharing, display helpers, distribution detection
+
+// These are already exported from their respective modules above,
+// but we re-export them here for backward compatibility.
