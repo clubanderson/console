@@ -207,11 +207,7 @@ export function KServeStatus() {
           <p className="text-sm text-red-400 font-medium">
             {t('kserveStatus.fetchError', 'Unable to fetch KServe status')}
           </p>
-          {typeof error === 'object' && error !== null && 'message' in error && error.message && (
-            <p className="text-xs text-muted-foreground max-w-xs">
-              {(error as Error).message}
-            </p>
-          )}
+
         </div>
       </div>
     )
