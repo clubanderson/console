@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { CheckCircle, WifiOff, Cpu, Loader2, ExternalLink, AlertTriangle, KeyRound, Server } from 'lucide-react'
 import { RefreshIndicator } from '../ui/RefreshIndicator'
 import { useClusters, ClusterInfo } from '../../hooks/useMCP'
@@ -16,6 +17,7 @@ import { useCardLoadingState } from './CardDataContext'
 import { useTranslation } from 'react-i18next'
 import { useDemoMode } from '../../hooks/useDemoMode'
 import { useFederationAwareness, getProviderLabel as getFederationProviderLabel, getStateLabel, getStateColorClasses, type FederatedCluster } from '../../hooks/useFederation'
+import { ROUTES } from '../../config/routes'
 
 // Console URL generation for cloud providers
 function getConsoleUrl(provider: CloudProvider, clusterName: string, apiServerUrl?: string): string | null {
@@ -81,6 +83,7 @@ const CLUSTER_SORT_COMPARATORS = {
 
 export function ClusterHealth() {
   const { t } = useTranslation(['cards', 'common'])
+  const navigate = useNavigate()
   const {
     deduplicatedClusters: rawClusters,
     isLoading: isLoadingHook,
@@ -93,6 +96,10 @@ export function ClusterHealth() {
   const { isDemoMode } = useDemoMode()
   const [selectedCluster, setSelectedCluster] = useState<string | null>(null)
   const federation = useFederationAwareness()
+
+  const navigateToClusterStatus = (status: 'healthy' | 'unhealthy' | 'unreachable') => {
+    navigate(`${ROUTES.CLUSTERS}?status=${status}`)
+  }
 
   // Use shared card data hook for filtering, sorting, and pagination
   const {
@@ -267,28 +274,28 @@ export function ClusterHealth() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 @md:grid-cols-4 gap-2 mb-4">
-        <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 min-w-0 overflow-hidden" title={t('clusterHealth.healthyTooltip', { count: healthyClusters })}>
+        <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 min-w-0 overflow-hidden cursor-pointer hover:bg-green-500/15 transition-colors" role="button" tabIndex={0} aria-label={t('clusterHealth.healthyTooltip', { count: healthyClusters })} onClick={() => navigateToClusterStatus('healthy')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigateToClusterStatus('healthy') } }}>
           <div className="flex items-center gap-1.5 mb-1 min-w-0">
             <CheckCircle className="w-4 h-4 text-green-400 shrink-0" />
             <span className="text-xs text-green-400 truncate">{t('common:common.healthy')}</span>
           </div>
           <span className="text-2xl font-bold text-foreground">{healthyClusters}</span>
         </div>
-        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 min-w-0 overflow-hidden" title={t('clusterHealth.unhealthyTooltip', { count: unhealthyClusters })}>
+        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 min-w-0 overflow-hidden cursor-pointer hover:bg-red-500/15 transition-colors" role="button" tabIndex={0} aria-label={t('clusterHealth.unhealthyTooltip', { count: unhealthyClusters })} onClick={() => navigateToClusterStatus('unhealthy')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigateToClusterStatus('unhealthy') } }}>
           <div className="flex items-center gap-1.5 mb-1 min-w-0">
             <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
             <span className="text-xs text-red-400 truncate">{t('common:common.unhealthy')}</span>
           </div>
           <span className="text-2xl font-bold text-foreground">{unhealthyClusters}</span>
         </div>
-        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 min-w-0 overflow-hidden" title={t('clusterHealth.authErrorTooltip', { count: tokenExpiredClusters })}>
+        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 min-w-0 overflow-hidden cursor-pointer hover:bg-red-500/15 transition-colors" role="button" tabIndex={0} aria-label={t('clusterHealth.authErrorTooltip', { count: tokenExpiredClusters })} onClick={() => navigateToClusterStatus('unreachable')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigateToClusterStatus('unreachable') } }}>
           <div className="flex items-center gap-1.5 mb-1 min-w-0">
             <KeyRound className="w-4 h-4 text-red-400 shrink-0" />
             <span className="text-xs text-red-400 truncate">{t('clusterHealth.authErrorLabel')}</span>
           </div>
           <span className="text-2xl font-bold text-foreground">{tokenExpiredClusters}</span>
         </div>
-        <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20 min-w-0 overflow-hidden" title={t('clusterHealth.offlineTooltip', { count: networkOfflineClusters })}>
+        <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20 min-w-0 overflow-hidden cursor-pointer hover:bg-yellow-500/15 transition-colors" role="button" tabIndex={0} aria-label={t('clusterHealth.offlineTooltip', { count: networkOfflineClusters })} onClick={() => navigateToClusterStatus('unreachable')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigateToClusterStatus('unreachable') } }}>
           <div className="flex items-center gap-1.5 mb-1 min-w-0">
             <WifiOff className="w-4 h-4 text-yellow-400 shrink-0" />
             <span className="text-xs text-yellow-400 truncate">{t('common:common.offline')}</span>
@@ -345,7 +352,10 @@ export function ClusterHealth() {
               data-tour={idx === 0 ? 'drilldown' : undefined}
               className={`group ${isMobile ? 'flex flex-col gap-1.5' : 'flex flex-wrap items-center justify-between gap-y-2'} p-2 rounded-lg border border-border/30 bg-secondary/30 transition-all cursor-pointer hover:bg-secondary/50 hover:border-border/50 min-w-0 overflow-hidden`}
               onClick={() => setSelectedCluster(cluster.name)}
-              title={t('clusterHealth.clickViewDetails', { name: cluster.name })}
+              role="button"
+              tabIndex={0}
+              aria-label={t('clusterHealth.clickViewDetails', { name: cluster.name })}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedCluster(cluster.name) } }}
             >
               <div className="flex items-center gap-2 min-w-0 flex-1" title={statusTooltip}>
                 {/* Status icon: green check for healthy, red key for auth error, yellow wifi-off for offline, red triangle for degraded */}
