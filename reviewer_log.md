@@ -1539,3 +1539,42 @@ Nominal — no anomalies.
 
 ### Playwright RED
 nightlyPlaywright=RED — scanner owns, not in scope for file-issue reviewer.
+
+## Pass 108 — 2026-05-02T05:32 UTC
+
+### Trigger
+KICK: nightlyPlaywright=RED. 59 unaddressed Copilot comments (3 HIGH). git pull /tmp/hive.
+
+### RED Indicators
+- **nightlyPlaywright=RED**: Scanner owns — Issue #11348 open. No source-file changes needed.
+
+### Hive Pull
+`/tmp/hive` is an unrelated-history repo (separate project). Cannot merge into console. No action needed.
+
+### HIGH Copilot Comments — All Confirmed Resolved in HEAD
+
+| PR | File:Line | Issue | Status |
+|----|-----------|-------|--------|
+| #11380 | startup-oauth.sh:570 | Stale watchdog + `parallel_build` stage | ✅ `WATCHER_NEEDS_REBUILD` check (lines 400–415) + `BACKEND_BUILD_PID` in cleanup() |
+| #11326 | drasi_proxy_test.go:25 | Missing hop-by-hop upstream assertion | ✅ `assert.Empty(Proxy-Authenticate)` present at line 26 |
+| #11355 | FeedbackModal.tsx:234 | OAuth param leak via `window.location.href` | ✅ Uses `origin+pathname` (no query/hash) |
+
+### MEDIUM Copilot Comments — Fixed This Pass
+
+All 5 MEDIUM items from PR #11384 addressed in commit `e6ded5c55` on `fix/11383`:
+
+| File | Line | Issue | Fix |
+|------|------|-------|-----|
+| kagenti-error-handling.spec.ts | 6 | Unused imports (`setupDemoAndNavigate`, `waitForSubRoute`) | Removed |
+| kagenti-error-handling.spec.ts | 91 | `.catch(() => {})` swallows networkidle timeout | Replaced all 16 occurrences with `waitForNetworkIdleBestEffort()` |
+| kagenti-error-handling.spec.ts | 150 | `setupErrorCollector()` called, `errors` never used (5 tests) | Removed the unused collector calls; kept the one test that asserts |
+| kagenti.test.ts | 1150 | `globalThis.fetch` restore not in try/finally (7 tests) | All 7 new error-handling tests wrapped with try/finally |
+
+### GA4
+Nominal — 0 anomalies.
+
+### Merge-eligible PRs
+actionable.json count = 0. No PRs to merge.
+
+### Outstanding
+- nightlyPlaywright=RED: scanner owns — Issue #11348 open
