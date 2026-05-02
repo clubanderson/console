@@ -730,7 +730,7 @@ export const CardWrapper = memo(function CardWrapper({
                 {effectiveIsFailed && (() => {
                   const effectiveLastUpdated = lastUpdated ?? childDataState?.lastUpdated
                   return effectiveLastUpdated && !isVisuallySpinning && !effectiveIsLoading
-                    ? <span className="text-2xs text-muted-foreground/50 select-none" aria-hidden="true">·</span>
+                    ? <span className="text-2xs text-muted-foreground/50 select-none mx-1.5" aria-hidden="true">·</span>
                     : null
                 })()}
                 {/* Last updated indicator — use prop or child-reported timestamp.
