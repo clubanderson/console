@@ -77,6 +77,17 @@ export function useDiagnoseRepairLoop(options: UseDiagnoseRepairLoopOptions): Us
     if (mission.status === 'completed' || mission.status === 'failed' || mission.status === 'cancelled') {
       setState(prev => {
         if (prev.phase !== 'diagnosing') return prev
+        // #11406 — If the mission failed or was cancelled, transition to
+        // the failed phase with a meaningful error message.
+        if (mission.status === 'failed' || mission.status === 'cancelled') {
+          return {
+            ...prev,
+            phase: 'failed',
+            error: mission.status === 'cancelled'
+              ? 'Diagnosis was cancelled'
+              : 'Diagnosis failed — check AI provider configuration and try again',
+          }
+        }
         // Generate proposed repairs from issues
         const proposedRepairs: ProposedRepair[] = repairable
           ? prev.issuesFound.map((issue, idx) => ({
@@ -87,9 +98,13 @@ export function useDiagnoseRepairLoop(options: UseDiagnoseRepairLoopOptions): Us
               risk: getDefaultRepairRisk(issue),
               approved: false }))
           : []
+        // #11406 — When repairable but no issues found, go straight to
+        // complete instead of proposing-repair with an empty list.
+        const nextPhase: DiagnoseRepairPhase =
+          repairable && proposedRepairs.length > 0 ? 'proposing-repair' : 'complete'
         return {
           ...prev,
-          phase: repairable ? 'proposing-repair' : 'complete',
+          phase: nextPhase,
           proposedRepairs }
       })
     }

@@ -1060,7 +1060,28 @@
     "repairSuggestion": "Repair Suggestion",
     "applyRepair": "Apply Repair",
     "watchedWorkloads": "Watched Workloads",
-    "matchLabels": "Match Labels"
+    "matchLabels": "Match Labels",
+    "diagnosisComplete": "Diagnosis complete",
+    "diagnosisAndRepairComplete": "Diagnosis & repair complete",
+    "diagnosisFailed": "Diagnosis failed",
+    "repairsExecuted": "{{count}} repair(s) executed",
+    "noIssuesFound": "No issues found — workload appears healthy",
+    "scanningLabel": "Scanning...",
+    "diagnosingLabel": "Diagnosing...",
+    "executingRepairs": "Executing repairs...",
+    "verifyingRepairs": "Verifying repairs...",
+    "proposedRepairs": "Proposed Repairs",
+    "approveAll": "Approve All",
+    "executeRepairs": "Execute {{count}} Repair(s)",
+    "cancelledByUser": "Cancelled by user",
+    "aiDiagnoseAndRepair": "AI Diagnose & Repair",
+    "aiDiagnose": "AI Diagnose",
+    "diagnoseButton": "Diagnose",
+    "cancelButton": "Cancel",
+    "resetButton": "Reset",
+    "reScanNow": "Re-scan Now",
+    "riskLabel": "{{risk}} risk",
+    "loopLabel": "Loop {{current}}/{{max}}"
   },
   "llmd": {
     "inference": "Inference",
@@ -2553,9 +2574,14 @@
     "configError": "Configuration error detected",
     "unknown": "Unknown issue detected"
   },
-  "eventsTimeline": {
+  "eventStream": {
     "noEvents": "No events",
-    "noEventsHint": "Cluster events will appear here",
+    "noEventsHint": "Cluster events will appear here when activity is detected",
+    "noMatchingEvents": "No events match your search"
+  },
+  "eventsTimeline": {
+    "noEvents": "No event activity",
+    "noEventsHint": "Event timeline data will appear here once events are recorded",
     "range15m": "15m",
     "range1h": "1h",
     "range6h": "6h",

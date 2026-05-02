@@ -11,10 +11,11 @@ import {
   ChevronDown,
   ChevronRight,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useDiagnoseRepairLoop } from '../../../hooks/useDiagnoseRepairLoop'
 import { useApiKeyCheck, ApiKeyPromptModal } from '../console-missions/shared'
 import type { MonitoredResource, MonitorIssue, DiagnoseRepairPhase, RepairRisk } from '../../../types/workloadMonitor'
+import { useTranslation } from 'react-i18next'
 
 interface DiagnoseProps {
   resources: MonitoredResource[]
@@ -56,6 +57,7 @@ export function WorkloadMonitorDiagnose({
   workloadContext,
 }: DiagnoseProps) {
   const [expanded, setExpanded] = useState(false)
+  const { t } = useTranslation(['cards', 'common'])
   const { showKeyPrompt, checkKeyAndRun, goToSettings, dismissPrompt } = useApiKeyCheck()
 
   const {
@@ -70,6 +72,15 @@ export function WorkloadMonitorDiagnose({
     monitorType,
     repairable,
   })
+
+  // #11407 — Auto-collapse panel after completion so user gets clear feedback
+  const AUTO_COLLAPSE_DELAY_MS = 3000
+  useEffect(() => {
+    if (state.phase === 'complete') {
+      const timer = setTimeout(() => setExpanded(false), AUTO_COLLAPSE_DELAY_MS)
+      return () => clearTimeout(timer)
+    }
+  }, [state.phase])
 
   if (!diagnosable) return null
 
@@ -98,7 +109,7 @@ export function WorkloadMonitorDiagnose({
         >
           {expanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
           <Stethoscope className="w-3.5 h-3.5 text-purple-400" />
-          <span>AI Diagnose{repairable ? ' & Repair' : ''}</span>
+          <span>{repairable ? t('cards:workloadMonitor.aiDiagnoseAndRepair') : t('cards:workloadMonitor.aiDiagnose')}</span>
           {state.phase !== 'idle' && (
             <span className={`text-2xs px-1.5 py-0.5 rounded bg-secondary ${phaseConfig.color}`}>
               {phaseConfig.label}
@@ -106,7 +117,7 @@ export function WorkloadMonitorDiagnose({
           )}
           {state.loopCount > 0 && (
             <span className="text-2xs text-muted-foreground">
-              Loop {state.loopCount}/{state.maxLoops}
+              {t('cards:workloadMonitor.loopLabel', { current: state.loopCount, max: state.maxLoops })}
             </span>
           )}
         </button>
@@ -117,7 +128,7 @@ export function WorkloadMonitorDiagnose({
               className="flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 transition-colors"
             >
               <Stethoscope className="w-3 h-3" />
-              Diagnose
+              {t('cards:workloadMonitor.diagnoseButton')}
             </button>
           )}
           {isActive && (
@@ -126,7 +137,7 @@ export function WorkloadMonitorDiagnose({
               className="flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
             >
               <Ban className="w-3 h-3" />
-              Cancel
+              {t('cards:workloadMonitor.cancelButton')}
             </button>
           )}
           {(state.phase === 'complete' || state.phase === 'failed') && (
@@ -135,7 +146,7 @@ export function WorkloadMonitorDiagnose({
               className="flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-secondary text-muted-foreground hover:text-foreground transition-colors"
             >
               <RotateCcw className="w-3 h-3" />
-              Reset
+              {t('cards:workloadMonitor.resetButton')}
             </button>
           )}
         </div>
@@ -183,13 +194,13 @@ export function WorkloadMonitorDiagnose({
           {(state.phase === 'proposing-repair' || state.phase === 'awaiting-approval') && state.proposedRepairs.length > 0 && (
             <div className="space-y-2">
               <div className="flex flex-wrap items-center justify-between gap-y-2">
-                <span className="text-xs font-medium text-foreground">Proposed Repairs</span>
+                <span className="text-xs font-medium text-foreground">{t('cards:workloadMonitor.proposedRepairs')}</span>
                 {!allApproved && (
                   <button
                     onClick={approveAllRepairs}
                     className="text-2xs px-1.5 py-0.5 rounded bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors"
                   >
-                    Approve All
+                    {t('cards:workloadMonitor.approveAll')}
                   </button>
                 )}
               </div>
@@ -211,7 +222,7 @@ export function WorkloadMonitorDiagnose({
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-medium text-foreground">{repair.action}</span>
                       <span className={`text-2xs px-1 py-0.5 rounded ${RISK_BADGE[repair.risk]}`}>
-                        {repair.risk} risk
+                        {t('cards:workloadMonitor.riskLabel', { risk: repair.risk })}
                       </span>
                     </div>
                     <p className="text-2xs text-muted-foreground mt-0.5">{repair.description}</p>
@@ -224,7 +235,7 @@ export function WorkloadMonitorDiagnose({
                   className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-md bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 transition-colors text-xs font-medium"
                 >
                   <Wrench className="w-3.5 h-3.5" />
-                  Execute {state.proposedRepairs.filter(r => r.approved).length} Repair{state.proposedRepairs.filter(r => r.approved).length !== 1 ? 's' : ''}
+                  {t('cards:workloadMonitor.executeRepairs', { count: state.proposedRepairs.filter(r => r.approved).length })}
                 </button>
               )}
             </div>
@@ -234,7 +245,7 @@ export function WorkloadMonitorDiagnose({
           {state.phase === 'repairing' && (
             <div className="flex items-center gap-2 py-3 justify-center">
               <Loader2 className="w-4 h-4 text-orange-400 animate-spin" />
-              <span className="text-sm text-muted-foreground">Executing repairs...</span>
+              <span className="text-sm text-muted-foreground">{t('cards:workloadMonitor.executingRepairs')}</span>
             </div>
           )}
 
@@ -242,31 +253,50 @@ export function WorkloadMonitorDiagnose({
           {state.phase === 'verifying' && (
             <div className="flex flex-col items-center gap-2 py-3">
               <Loader2 className="w-4 h-4 text-purple-400 animate-spin" />
-              <span className="text-sm text-muted-foreground">Verifying repairs...</span>
+              <span className="text-sm text-muted-foreground">{t('cards:workloadMonitor.verifyingRepairs')}</span>
               <button
                 onClick={() => startDiagnose(resources, issues, workloadContext)}
                 className="text-xs px-2 py-1 rounded-md bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 transition-colors"
               >
-                Re-scan Now
+                {t('cards:workloadMonitor.reScanNow')}
               </button>
             </div>
           )}
 
           {/* Complete */}
           {state.phase === 'complete' && (
-            <div className="rounded-md bg-green-500/10 border border-green-500/20 p-3 flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-green-400 shrink-0" />
-              <div>
-                <p className="text-sm text-green-400 font-medium">
-                  {repairable ? 'Diagnosis & repair complete' : 'Diagnosis complete'}
-                </p>
-                {state.completedRepairs.length > 0 && (
-                  <p className="text-xs text-green-400/70 mt-0.5">
-                    {state.completedRepairs.length} repair{state.completedRepairs.length !== 1 ? 's' : ''} executed
-                    {state.loopCount > 0 && ` over ${state.loopCount + 1} iteration${state.loopCount > 0 ? 's' : ''}`}
+            <div className="space-y-2">
+              <div className="rounded-md bg-green-500/10 border border-green-500/20 p-3 flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-400 shrink-0" />
+                <div>
+                  <p className="text-sm text-green-400 font-medium">
+                    {repairable ? t('cards:workloadMonitor.diagnosisAndRepairComplete') : t('cards:workloadMonitor.diagnosisComplete')}
                   </p>
-                )}
+                  {state.completedRepairs.length > 0 && (
+                    <p className="text-xs text-green-400/70 mt-0.5">
+                      {t('cards:workloadMonitor.repairsExecuted', { count: state.completedRepairs.length })}
+                    </p>
+                  )}
+                </div>
               </div>
+              {/* #11406 — Show diagnosis findings so users see actionable results */}
+              {state.issuesFound.length > 0 ? (
+                <div className="rounded-md bg-secondary/30 border border-border p-2 space-y-1">
+                  {(state.issuesFound || []).map(issue => (
+                    <div key={issue.id} className="flex items-start gap-2 text-xs">
+                      <AlertTriangle className={`w-3 h-3 shrink-0 mt-0.5 ${issue.severity === 'critical' ? 'text-red-400' : issue.severity === 'warning' ? 'text-yellow-400' : 'text-blue-400'}`} />
+                      <div className="min-w-0">
+                        <span className="font-medium text-foreground">{issue.title}</span>
+                        <p className="text-muted-foreground truncate">{issue.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground px-1">
+                  {t('cards:workloadMonitor.noIssuesFound')}
+                </p>
+              )}
             </div>
           )}
 
@@ -275,7 +305,7 @@ export function WorkloadMonitorDiagnose({
             <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
               <div>
-                <p className="text-sm text-red-400 font-medium">Diagnosis failed</p>
+                <p className="text-sm text-red-400 font-medium">{t('cards:workloadMonitor.diagnosisFailed')}</p>
                 {state.error && (
                   <p className="text-xs text-red-400/70 mt-0.5">{state.error}</p>
                 )}
