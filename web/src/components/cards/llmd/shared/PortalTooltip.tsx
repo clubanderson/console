@@ -134,7 +134,7 @@ export function Acronym({ term, className = '' }: AcronymProps) {
       className={className}
       content={
         <>
-          <span className="font-semibold text-white">{def.full}</span>
+          <span className="font-semibold text-foreground">{def.full}</span>
           <br />
           <span className="text-muted-foreground">{def.desc}</span>
         </>

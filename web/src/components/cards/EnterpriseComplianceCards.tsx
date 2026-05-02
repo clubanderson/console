@@ -39,22 +39,22 @@ function CardShell({ title, icon: Icon, children, onClick }: {
 }) {
   return (
     <div
-      className={`h-full flex flex-col ${onClick ? 'cursor-pointer hover:bg-gray-700/30 transition-colors min-h-11' : ''}`}
+      className={`h-full flex flex-col ${onClick ? 'cursor-pointer hover:bg-secondary/50 transition-colors min-h-11' : ''}`}
       onClick={onClick}
     >
       <div className="flex items-center gap-2 mb-3">
         <Icon className="w-4 h-4 text-blue-400 shrink-0" />
-        <span className="text-sm font-medium text-white truncate">{title}</span>
+        <span className="text-sm font-medium text-foreground truncate">{title}</span>
       </div>
       <div className="flex-1 min-h-0">{children}</div>
     </div>
   )
 }
 
-function MiniStat({ label, value, color = 'text-white' }: { label: string; value: string | number; color?: string }) {
+function MiniStat({ label, value, color = 'text-foreground' }: { label: string; value: string | number; color?: string }) {
   return (
     <div>
-      <p className="text-xs text-gray-400">{label}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
       <p className={`text-lg font-bold ${color}`}>{value}</p>
     </div>
   )

@@ -55,7 +55,7 @@ export function SnoozedMissionItem({ mission, onApply, onDismiss }: SnoozedMissi
       {/* Dismiss button */}
       <button
         onClick={onDismiss}
-        className="absolute top-1 right-1 p-0.5 rounded hover:bg-secondary text-muted-foreground hover:text-white transition-colors"
+        className="absolute top-1 right-1 p-0.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
       >
         <X className="w-3 h-3" />
       </button>
