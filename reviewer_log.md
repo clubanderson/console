@@ -984,3 +984,34 @@ All 6 HIGH source-file comments remain addressed from passes 78–81:
 - nightlyPlaywright: waiting for next nightly run post-source-fixes
 
 **Status:** Source fixes committed; PR #11210 in CI. Monitoring nightlyRel completion.
+
+## Pass 113 — 2026-05-02
+
+**Red indicators at start:** nightly=RED (deploy-test timeout), nightlyPlaywright=RED (scanner owns)  
+**GA4:** nominal, no anomalies  
+**CodeQL:** 0 open alerts ✅  
+**Releases:** v0.3.24-nightly.20260502 published 3h ago ✅  
+**Nightly Dashboard Health:** GREEN ✅  
+**Nightly gh-aw Version Check:** GREEN ✅  
+**Coverage/Nil Safety:** GREEN on recent PRs ✅  
+
+### nightly=RED — FIXED
+- **Root cause:** `deploy-test` suite hits the default 300s wall-clock cap in `run-all-tests.sh`. The suite runs `npm run build && vite preview` (up to 180s server startup) before any test, so 11 tests consistently timeout.
+- **Fix:** Added `["deploy-test"]=900` to `PLAYWRIGHT_SUITE_TIMEOUT_OVERRIDES` in `scripts/run-all-tests.sh`.
+- **Also fixed:** `pr-closed-verification.yml` "Comment on PR — verification passed" fails with `GraphQL: Resource not accessible by integration` — added `|| true`.
+- **PR:** #11442 (Fixes #11395, #11396)
+
+### nightlyPlaywright=RED
+Scanner owns — workflow issue #11393 already filed. Not in scope.
+
+### HIGH copilot comments
+- PR#11380 `startup-oauth.sh:570` `parallel_build` watchdog incompatibility: filed issue #11444 ✅
+
+### Green PRs
+PR#11435, #11436, #11437 have clean CI but `mergeableState: dirty` — need author rebase before merge.
+
+### Post-merge diffs (PR#11391)
+4 files changed: Layout/Dashboard/DashboardGrid min-width fix. Medium-severity copilot comments about `overflow-x-hidden` + `min-w-[600px]` clash captured in open issues.
+
+### vllm-d + pok-prod01
+Nightly Dashboard Health: success ✅ (2026-05-02T05:39)
