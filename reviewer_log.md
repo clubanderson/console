@@ -1056,3 +1056,59 @@ State: dirty (merge conflict). Not actionable — skipped.
 
 ### Upstream HEAD
 d91886ab6 (after 5 PR merges)
+
+---
+
+## Pass 116 — 2026-05-02
+
+### Summary
+Post-merge verification pass after scanner merged 7 PRs (#11431–11439).
+
+### CI on upstream/main (HEAD: d91886ab)
+- **Build Frontend**: ✅ success
+- **App Credential Smoke / route-smoke / Rewards Classifier Contract**: ✅ success
+- **Playwright shards 1–4 / Mobile Browser Tests**: ⏳ pending (no failures)
+- **deploy-vllm-d / deploy-pok-prod**: ✅ success (run 25250645780)
+- **Zero failures on HEAD**
+
+### Build and Deploy KC — last 5 runs
+| Run | SHA | Conclusion | vllm-d | pok-prod |
+|-----|-----|-----------|--------|---------|
+| 25250654972 | aa21d540 | success | skipped | skipped |
+| 25250645780 | d91886ab | **success** | **success** | **success** |
+| 25250614959 | ea80d73e | cancelled | cancelled | cancelled |
+| 25250582848 | c80a2cfa | cancelled | cancelled | cancelled |
+| 25250581321 | cbe02604 | success | skipped | skipped |
+
+Cancellations on ea80d73e/c80a2cfa expected — rapid PR merges caused superseding runs. Last real deploy (d91886ab): both vllm-d and pok-prod **success**.
+
+### Post-merge diff review (PRs #11431–11439)
+| PR | Files | +/- | Notes |
+|----|-------|-----|-------|
+| #11431 | 2 | +2/-2 | Mission rename visibility |
+| #11432 | 3 | +9/-9 | Status label theme fix |
+| #11433 | 2 | +11/-8 (+34/-412 log) | SidebarShell fragment fix |
+| #11435 | 2 | +27/-7 | Search input clarity |
+| #11436 | 11 | +23/-1 | ARIA labels |
+| #11437 | 4 | +91/-27 | EventStream useTranslation fix |
+| #11439 | 4 | +16/-10 | Toolbar labels |
+
+All diffs clean — no unexpected file changes.
+
+### Coverage gate
+No dedicated coverage workflow found. No coverage context in commit statuses.
+
+### HIGH Copilot comment resolved ✅
+Issue #11444 (startup-oauth.sh parallel_build watchdog): analysis confirmed already mitigated — PR#11380 also updated cmd/watcher/watcher_html.go (Go source), so rebuild check in startup-oauth.sh will always trigger on git pull. Issue closed with explanation.
+
+### Copilot comments
+Total: 61 (H:1→0 resolved, M:55, L:5). HIGH cleared.
+
+### GA4
+1 medium anomaly: ksc_http_error recent=2 vs baseline 0.6/day (ratio 3.5×). Transient, no escalation.
+
+### Open PRs remaining
+- PR#2129 (console-kb): dirty — skip
+
+### nightly=GREEN ✅
+Last nightly: 2026-05-02T05:48Z — success.
