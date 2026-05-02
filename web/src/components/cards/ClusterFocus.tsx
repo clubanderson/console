@@ -180,6 +180,9 @@ export function ClusterFocus({ config }: ClusterFocusProps) {
             podCount: cluster.podCount,
             cpuCores: cluster.cpuCores,
             server: cluster.server })}
+          onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && cluster) { e.preventDefault(); drillToCluster(cluster.name, { healthy: cluster.healthy, nodeCount: cluster.nodeCount, podCount: cluster.podCount, cpuCores: cluster.cpuCores, server: cluster.server }) } }}
+          role="button"
+          tabIndex={0}
         >
           <div className="flex items-center gap-2 mb-1">
             <Activity className="w-4 h-4 text-blue-400" />
@@ -227,6 +230,19 @@ export function ClusterFocus({ config }: ClusterFocusProps) {
                 restarts: issue.restarts })
             }
           }}
+          onKeyDown={(e) => {
+            if ((e.key === 'Enter' || e.key === ' ') && podIssues.length > 0) {
+              e.preventDefault()
+              const issue = podIssues[0]
+              drillToPod(clusterName, issue.namespace, issue.name, {
+                status: issue.status,
+                reason: issue.reason,
+                issues: issue.issues,
+                restarts: issue.restarts })
+            }
+          }}
+          role="button"
+          tabIndex={0}
           title={podIssues.length > 0 ? t('cards:clusterFocus.clickToView', { name: podIssues[0].name }) : t('cards:clusterFocus.noPodIssues')}
         >
           <div className="flex items-center gap-2">
@@ -248,6 +264,19 @@ export function ClusterFocus({ config }: ClusterFocusProps) {
                 message: issue.message })
             }
           }}
+          onKeyDown={(e) => {
+            if ((e.key === 'Enter' || e.key === ' ') && deploymentIssues.length > 0) {
+              e.preventDefault()
+              const issue = deploymentIssues[0]
+              drillToDeployment(clusterName, issue.namespace, issue.name, {
+                replicas: issue.replicas,
+                readyReplicas: issue.readyReplicas,
+                reason: issue.reason,
+                message: issue.message })
+            }
+          }}
+          role="button"
+          tabIndex={0}
           title={deploymentIssues.length > 0 ? t('cards:clusterFocus.clickToView', { name: deploymentIssues[0].name }) : t('cards:clusterFocus.noDeploymentIssues')}
         >
           <div className="flex items-center gap-2">

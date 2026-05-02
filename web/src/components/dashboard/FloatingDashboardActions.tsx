@@ -152,6 +152,7 @@ export function FloatingDashboardActions({
               disabled={!canUndo}
               className="p-1.5 rounded text-muted-foreground hover:text-foreground hover:bg-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               title={`${t('dashboard.actions.undo', 'Undo')} (${navigator.platform.includes('Mac') ? '\u2318' : 'Ctrl'}+Z)`}
+              aria-label={t('dashboard.actions.undo', 'Undo')}
             >
               <Undo2 className="w-3.5 h-3.5" />
             </button>
@@ -160,6 +161,7 @@ export function FloatingDashboardActions({
               disabled={!canRedo}
               className="p-1.5 rounded text-muted-foreground hover:text-foreground hover:bg-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               title={`${t('dashboard.actions.redo', 'Redo')} (${navigator.platform.includes('Mac') ? '\u2318' : 'Ctrl'}+Shift+Z)`}
+              aria-label={t('dashboard.actions.redo', 'Redo')}
             >
               <Redo2 className="w-3.5 h-3.5" />
             </button>
@@ -168,6 +170,7 @@ export function FloatingDashboardActions({
                 onClick={() => { if (onReset) onReset('replace'); else if (onResetToDefaults) onResetToDefaults() }}
                 className="p-1.5 rounded text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors"
                 title={t('dashboard.actions.reset', 'Reset dashboard to defaults')}
+                aria-label={t('dashboard.actions.reset', 'Reset dashboard to defaults')}
               >
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
@@ -183,6 +186,7 @@ export function FloatingDashboardActions({
             fabHint.isVisible ? 'animate-fab-shimmer' : ''
           }`}
           title={`${t('dashboard.studio.title', 'Console Studio')} (${navigator.platform.includes('Mac') ? '\u2318' : 'Ctrl'}+K)`}
+          aria-label={t('dashboard.studio.title', 'Console Studio')}
         >
           <Palette className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} text-foreground`} />
         </button>

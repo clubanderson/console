@@ -321,10 +321,10 @@ export const T2_TEMPLATES: T2Template[] = [
           <span className="text-xs text-muted-foreground truncate max-w-[200px]">{url}</span>
         </div>
         <div className="flex gap-1">
-          <button onClick={() => { setLoading(true); setRefreshKey(k => k + 1) }} className="min-h-11 min-w-11 flex items-center justify-center rounded hover:bg-secondary/50" title="Refresh">
+          <button onClick={() => { setLoading(true); setRefreshKey(k => k + 1) }} className="min-h-11 min-w-11 flex items-center justify-center rounded hover:bg-secondary/50" aria-label="Refresh">
             <RefreshCw className={cn('w-3 h-3 text-muted-foreground', loading && 'animate-spin')} />
           </button>
-          <button onClick={() => { setEditing(true); setEditUrl(url) }} className="min-h-11 min-w-11 flex items-center justify-center rounded hover:bg-secondary/50" title="Change URL">
+          <button onClick={() => { setEditing(true); setEditUrl(url) }} className="min-h-11 min-w-11 flex items-center justify-center rounded hover:bg-secondary/50" aria-label="Change URL">
             <Settings className="w-3 h-3 text-muted-foreground" />
           </button>
         </div>
@@ -455,7 +455,7 @@ export const T2_TEMPLATES: T2Template[] = [
           </div>
         ) : forwards.map(f => (
           <div key={f.id} className={\`flex items-center gap-2 px-2 py-1.5 rounded \${f.active ? 'bg-green-500/10 border border-green-500/20' : 'bg-secondary/20 border border-border/30'}\`}>
-            <button onClick={() => toggleActive(f.id)} title={f.active ? 'Mark inactive' : 'Mark active'}>
+            <button onClick={() => toggleActive(f.id)} aria-label={f.active ? 'Mark inactive' : 'Mark active'}>
               {f.active
                 ? <CircleDot className="w-3.5 h-3.5 text-green-400" />
                 : <Circle className="w-3.5 h-3.5 text-muted-foreground" />}
@@ -469,13 +469,13 @@ export const T2_TEMPLATES: T2Template[] = [
                 :{f.localPort} → :{f.remotePort}
               </span>
             </div>
-            <button onClick={() => copyCommand(f)} title="Copy kubectl command"
+            <button onClick={() => copyCommand(f)} aria-label="Copy kubectl command"
               className="p-1 rounded hover:bg-secondary/50">
               {copied === f.id
                 ? <Check className="w-3 h-3 text-green-400" />
                 : <Copy className="w-3 h-3 text-muted-foreground" />}
             </button>
-            <button onClick={() => removeForward(f.id)} title="Remove"
+            <button onClick={() => removeForward(f.id)} aria-label="Remove port forward"
               className="p-1 rounded hover:bg-secondary/50">
               <Trash2 className="w-3 h-3 text-muted-foreground hover:text-red-400" />
             </button>

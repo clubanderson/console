@@ -280,7 +280,7 @@ Please proceed step by step. Start with verifying prerequisites (Python 3.9+, ku
             )}
           </div>
         </div>
-        <button onClick={() => drillToCompliance('', {})} className="cursor-pointer" title={t('cards:trestleScan.viewAllControls')}>
+        <button onClick={() => drillToCompliance('', {})} className="cursor-pointer" title={t('cards:trestleScan.viewAllControls')} aria-label={t('cards:trestleScan.viewAllControls')}>
           <StatusBadge
             color={filtered.overallScore >= SCORE_GOOD_THRESHOLD ? 'green' : filtered.overallScore >= SCORE_WARNING_THRESHOLD ? 'yellow' : 'red'}
             size="xs"

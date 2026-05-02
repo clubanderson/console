@@ -573,6 +573,10 @@ export function SidebarShell({
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-xs z-overlay md:hidden"
           onClick={closeMobileSidebar}
+          onKeyDown={(e) => { if (e.key === 'Escape') closeMobileSidebar() }}
+          role="button"
+          tabIndex={-1}
+          aria-label="Close sidebar"
         />
       )}
 

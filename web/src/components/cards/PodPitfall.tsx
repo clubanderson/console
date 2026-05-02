@@ -556,7 +556,7 @@ export function PodPitfall(_props: CardComponentProps) {
           </div>
         </div>
 
-        <button onClick={startGame} className="p-2 min-h-11 min-w-11 rounded hover:bg-secondary" title="New Game">
+        <button onClick={startGame} className="p-2 min-h-11 min-w-11 rounded hover:bg-secondary" aria-label="New Game">
           <RotateCcw className="w-4 h-4" />
         </button>
       </div>

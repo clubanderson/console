@@ -243,6 +243,9 @@ function TopPodsInternal({ config }: TopPodsProps) {
                 status: pod.status,
                 restarts: pod.restarts,
               })}
+              onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && pod.cluster) { e.preventDefault(); drillToPod(pod.cluster, pod.namespace, pod.name, { status: pod.status, restarts: pod.restarts }) } }}
+              role="button"
+              tabIndex={0}
               title={`Click to view details for ${pod.name}`}
             >
               <div className="flex flex-wrap items-center justify-between gap-y-2 mb-1">

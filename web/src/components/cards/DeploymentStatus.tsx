@@ -297,6 +297,9 @@ export function DeploymentStatus() {
               <div
                 key={`${deployment.cluster}-${deployment.namespace}-${deployment.name}`}
                 onClick={() => handleDeploymentClick(deployment)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleDeploymentClick(deployment) } }}
+                role="button"
+                tabIndex={0}
                 className={`p-3 rounded-lg border border-border/50 cursor-pointer hover:bg-secondary/50 hover:border-border transition-colors group ${idx % 2 === 0 ? 'bg-secondary/20' : 'bg-secondary/40'}`}
                 title={`Click to view details for ${deployment.name}`}
               >

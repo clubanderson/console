@@ -191,6 +191,9 @@ export function ComputeOverview() {
         <div
           className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 cursor-pointer hover:bg-blue-500/20 transition-colors"
           onClick={drillToResources}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); drillToResources() } }}
+          role="button"
+          tabIndex={0}
           title={hasRealData ? t('computeOverview.cpuCoresTitle', { count: stats.totalCPUs }) : t('computeOverview.noDataOffline')}
         >
           <div className="flex items-center gap-2 mb-1">
@@ -206,6 +209,9 @@ export function ComputeOverview() {
         <div
           className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 cursor-pointer hover:bg-green-500/20 transition-colors"
           onClick={drillToResources}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); drillToResources() } }}
+          role="button"
+          tabIndex={0}
           title={hasRealData ? t('computeOverview.memoryTitle', { memory: formatMemoryStat(stats.totalMemoryGB) }) : t('computeOverview.noDataOffline')}
         >
           <div className="flex items-center gap-2 mb-1">
@@ -224,6 +230,9 @@ export function ComputeOverview() {
         <div
           className="p-2 rounded-lg bg-secondary/50 cursor-pointer hover:bg-secondary/70 transition-colors"
           onClick={drillToResources}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); drillToResources() } }}
+          role="button"
+          tabIndex={0}
           title={hasRealData ? t('computeOverview.nodesTitle', { count: stats.totalNodes }) : t('common:common.noData')}
         >
           <div className="flex items-center gap-1.5 mb-1">
@@ -237,6 +246,9 @@ export function ComputeOverview() {
         <div
           className="p-2 rounded-lg bg-secondary/50 cursor-pointer hover:bg-secondary/70 transition-colors"
           onClick={drillToResources}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); drillToResources() } }}
+          role="button"
+          tabIndex={0}
           title={hasRealData ? t('computeOverview.podsTitle', { count: stats.totalPods }) : t('common:common.noData')}
         >
           <div className="flex items-center gap-1.5 mb-1">
@@ -253,6 +265,9 @@ export function ComputeOverview() {
       <div
         className={`p-3 rounded-lg bg-purple-500/10 border border-purple-500/20 ${stats.totalGPUs > 0 ? 'cursor-pointer hover:bg-purple-500/20' : 'cursor-default'} transition-colors`}
         onClick={() => stats.totalGPUs > 0 && drillToResources()}
+        onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && stats.totalGPUs > 0) { e.preventDefault(); drillToResources() } }}
+        role="button"
+        tabIndex={stats.totalGPUs > 0 ? 0 : undefined}
         title={stats.totalGPUs > 0 ? t('computeOverview.gpuAllocatedTitle', { allocated: stats.allocatedGPUs, total: stats.totalGPUs, percent: stats.gpuUtilization }) : t('computeOverview.noGPUsInClusters')}
       >
         <div className="flex flex-wrap items-center justify-between gap-y-2 mb-2">
