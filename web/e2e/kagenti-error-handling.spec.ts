@@ -1,9 +1,8 @@
 import { test, expect } from '@playwright/test'
 import {
-  setupDemoAndNavigate,
   setupDemoMode,
   setupErrorCollector,
-  waitForSubRoute,
+  waitForNetworkIdleBestEffort,
   NETWORK_IDLE_TIMEOUT_MS,
   ELEMENT_VISIBLE_TIMEOUT_MS,
 } from './helpers/setup'
@@ -87,7 +86,7 @@ test.describe('Kagenti error handling — agent not installed', () => {
     )
 
     await page.goto(AI_AGENTS_ROUTE)
-    await page.waitForLoadState('networkidle', { timeout: NETWORK_IDLE_TIMEOUT_MS }).catch(() => {})
+    await waitForNetworkIdleBestEffort(page, NETWORK_IDLE_TIMEOUT_MS)
 
     // Page should not crash — it should render with demo data or show an install prompt
     await expect(page.locator('body')).toBeVisible()
@@ -121,7 +120,7 @@ test.describe('Kagenti error handling — agent not installed', () => {
     )
 
     await page.goto(AI_AGENTS_ROUTE)
-    await page.waitForLoadState('networkidle', { timeout: NETWORK_IDLE_TIMEOUT_MS }).catch(() => {})
+    await waitForNetworkIdleBestEffort(page, NETWORK_IDLE_TIMEOUT_MS)
 
     // Dashboard header and refresh button should still be usable
     const header = page.getByTestId('dashboard-header')
@@ -145,14 +144,13 @@ test.describe('Kagenti error handling — agent not installed', () => {
 // ---------------------------------------------------------------------------
 test.describe('Kagenti error handling — agent unreachable', () => {
   test('handles network abort gracefully', async ({ page }) => {
-    const { errors } = setupErrorCollector(page)
     await setupDemoMode(page)
 
     // Abort all kagenti requests at the network level
     await mockAllKagentiEndpoints(page, (route) => route.abort('failed'))
 
     await page.goto(AI_AGENTS_ROUTE)
-    await page.waitForLoadState('networkidle', { timeout: NETWORK_IDLE_TIMEOUT_MS }).catch(() => {})
+    await waitForNetworkIdleBestEffort(page, NETWORK_IDLE_TIMEOUT_MS)
 
     // Page should not crash
     await expect(page.locator('body')).toBeVisible()
@@ -164,14 +162,13 @@ test.describe('Kagenti error handling — agent unreachable', () => {
   })
 
   test('handles network timeout gracefully', async ({ page }) => {
-    const { errors } = setupErrorCollector(page)
     await setupDemoMode(page)
 
     // Simulate timeout by aborting with 'timedout' reason
     await mockAllKagentiEndpoints(page, (route) => route.abort('timedout'))
 
     await page.goto(AI_AGENTS_ROUTE)
-    await page.waitForLoadState('networkidle', { timeout: NETWORK_IDLE_TIMEOUT_MS }).catch(() => {})
+    await waitForNetworkIdleBestEffort(page, NETWORK_IDLE_TIMEOUT_MS)
 
     // Page should not crash — should fall back to demo data
     await expect(page.locator('body')).toBeVisible()
@@ -186,7 +183,7 @@ test.describe('Kagenti error handling — agent unreachable', () => {
     await mockAllKagentiEndpoints(page, (route) => route.abort('connectionrefused'))
 
     await page.goto(AI_AGENTS_ROUTE)
-    await page.waitForLoadState('networkidle', { timeout: NETWORK_IDLE_TIMEOUT_MS }).catch(() => {})
+    await waitForNetworkIdleBestEffort(page, NETWORK_IDLE_TIMEOUT_MS)
 
     await expect(page.locator('body')).toBeVisible()
     const bodyText = await page.textContent('body')
@@ -199,7 +196,6 @@ test.describe('Kagenti error handling — agent unreachable', () => {
 // ---------------------------------------------------------------------------
 test.describe('Kagenti error handling — authentication failures', () => {
   test('handles 401 Unauthorized from kagenti endpoints', async ({ page }) => {
-    const { errors } = setupErrorCollector(page)
     await setupDemoMode(page)
 
     // Return 401 for all kagenti API calls
@@ -212,7 +208,7 @@ test.describe('Kagenti error handling — authentication failures', () => {
     )
 
     await page.goto(AI_AGENTS_ROUTE)
-    await page.waitForLoadState('networkidle', { timeout: NETWORK_IDLE_TIMEOUT_MS }).catch(() => {})
+    await waitForNetworkIdleBestEffort(page, NETWORK_IDLE_TIMEOUT_MS)
 
     // Page should not crash — it should degrade gracefully
     await expect(page.locator('body')).toBeVisible()
@@ -224,7 +220,6 @@ test.describe('Kagenti error handling — authentication failures', () => {
   })
 
   test('handles 403 Forbidden from kagenti endpoints', async ({ page }) => {
-    const { errors } = setupErrorCollector(page)
     await setupDemoMode(page)
 
     // Return 403 for all kagenti API calls
@@ -237,7 +232,7 @@ test.describe('Kagenti error handling — authentication failures', () => {
     )
 
     await page.goto(AI_AGENTS_ROUTE)
-    await page.waitForLoadState('networkidle', { timeout: NETWORK_IDLE_TIMEOUT_MS }).catch(() => {})
+    await waitForNetworkIdleBestEffort(page, NETWORK_IDLE_TIMEOUT_MS)
 
     // Page should not crash
     await expect(page.locator('body')).toBeVisible()
@@ -276,7 +271,7 @@ test.describe('Kagenti error handling — authentication failures', () => {
     )
 
     await page.goto(AI_AGENTS_ROUTE)
-    await page.waitForLoadState('networkidle', { timeout: NETWORK_IDLE_TIMEOUT_MS }).catch(() => {})
+    await waitForNetworkIdleBestEffort(page, NETWORK_IDLE_TIMEOUT_MS)
 
     // Page should render without crashing
     await expect(page.locator('body')).toBeVisible()
@@ -290,7 +285,6 @@ test.describe('Kagenti error handling — authentication failures', () => {
 // ---------------------------------------------------------------------------
 test.describe('Kagenti error handling — server errors', () => {
   test('handles 500 Internal Server Error from all kagenti endpoints', async ({ page }) => {
-    const { errors } = setupErrorCollector(page)
     await setupDemoMode(page)
 
     await mockAllKagentiEndpoints(page, (route) =>
@@ -302,7 +296,7 @@ test.describe('Kagenti error handling — server errors', () => {
     )
 
     await page.goto(AI_AGENTS_ROUTE)
-    await page.waitForLoadState('networkidle', { timeout: NETWORK_IDLE_TIMEOUT_MS }).catch(() => {})
+    await waitForNetworkIdleBestEffort(page, NETWORK_IDLE_TIMEOUT_MS)
 
     // Page should not crash — should fall back to demo data
     await expect(page.locator('body')).toBeVisible()
@@ -324,7 +318,7 @@ test.describe('Kagenti error handling — server errors', () => {
     )
 
     await page.goto(AI_AGENTS_ROUTE)
-    await page.waitForLoadState('networkidle', { timeout: NETWORK_IDLE_TIMEOUT_MS }).catch(() => {})
+    await waitForNetworkIdleBestEffort(page, NETWORK_IDLE_TIMEOUT_MS)
 
     await expect(page.locator('body')).toBeVisible()
     const bodyText = await page.textContent('body')
@@ -343,7 +337,7 @@ test.describe('Kagenti error handling — server errors', () => {
     )
 
     await page.goto(AI_AGENTS_ROUTE)
-    await page.waitForLoadState('networkidle', { timeout: NETWORK_IDLE_TIMEOUT_MS }).catch(() => {})
+    await waitForNetworkIdleBestEffort(page, NETWORK_IDLE_TIMEOUT_MS)
 
     await expect(page.locator('body')).toBeVisible()
     const bodyText = await page.textContent('body')
@@ -356,14 +350,13 @@ test.describe('Kagenti error handling — server errors', () => {
 // ---------------------------------------------------------------------------
 test.describe('Kagenti error handling — real network failures', () => {
   test('graceful degradation when all kagenti requests fail at network level', async ({ page }) => {
-    const { errors } = setupErrorCollector(page)
     await setupDemoMode(page)
 
     // Abort all kagenti requests to simulate total network failure
     await mockAllKagentiEndpoints(page, (route) => route.abort('failed'))
 
     await page.goto(AI_AGENTS_ROUTE)
-    await page.waitForLoadState('networkidle', { timeout: NETWORK_IDLE_TIMEOUT_MS }).catch(() => {})
+    await waitForNetworkIdleBestEffort(page, NETWORK_IDLE_TIMEOUT_MS)
 
     // Page should render with demo data fallback
     await expect(page.locator('body')).toBeVisible()
@@ -400,7 +393,7 @@ test.describe('Kagenti error handling — real network failures', () => {
     )
 
     await page.goto(AI_AGENTS_ROUTE)
-    await page.waitForLoadState('networkidle', { timeout: NETWORK_IDLE_TIMEOUT_MS }).catch(() => {})
+    await waitForNetworkIdleBestEffort(page, NETWORK_IDLE_TIMEOUT_MS)
 
     await expect(page.locator('body')).toBeVisible()
     const bodyText = await page.textContent('body')
@@ -427,7 +420,7 @@ test.describe('Kagenti error handling — real network failures', () => {
     )
 
     await page.goto(AI_AGENTS_ROUTE)
-    await page.waitForLoadState('networkidle', { timeout: NETWORK_IDLE_TIMEOUT_MS }).catch(() => {})
+    await waitForNetworkIdleBestEffort(page, NETWORK_IDLE_TIMEOUT_MS)
 
     // Page should not crash even with invalid JSON
     await expect(page.locator('body')).toBeVisible()
@@ -467,7 +460,7 @@ test.describe('Kagenti error handling — combined scenarios', () => {
     )
 
     await page.goto(AI_AGENTS_ROUTE)
-    await page.waitForLoadState('networkidle', { timeout: NETWORK_IDLE_TIMEOUT_MS }).catch(() => {})
+    await waitForNetworkIdleBestEffort(page, NETWORK_IDLE_TIMEOUT_MS)
 
     // Page should degrade gracefully with partial data or demo fallback
     await expect(page.locator('body')).toBeVisible()
@@ -488,7 +481,7 @@ test.describe('Kagenti error handling — combined scenarios', () => {
     )
 
     await page.goto(AI_AGENTS_ROUTE)
-    await page.waitForLoadState('networkidle', { timeout: NETWORK_IDLE_TIMEOUT_MS }).catch(() => {})
+    await waitForNetworkIdleBestEffort(page, NETWORK_IDLE_TIMEOUT_MS)
 
     // Page should render (with demo data or error state)
     await expect(page.locator('body')).toBeVisible()

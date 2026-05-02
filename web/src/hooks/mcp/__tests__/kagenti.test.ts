@@ -1136,17 +1136,20 @@ describe('useKagentiAgents — error handling', () => {
     })
 
     const originalFetch = globalThis.fetch
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 401,
-    })
+    try {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+      })
 
-    renderHook(() => useKagentiAgents())
-    expect(capturedFetcher).not.toBeNull()
+      renderHook(() => useKagentiAgents())
+      expect(capturedFetcher).not.toBeNull()
 
-    await expect(capturedFetcher!()).rejects.toThrow(/Authentication failed \(401\)/)
+      await expect(capturedFetcher!()).rejects.toThrow(/Authentication failed \(401\)/)
 
-    globalThis.fetch = originalFetch
+    } finally {
+      globalThis.fetch = originalFetch
+    }
   })
 
   it('fetcher throws classified error on 403 Forbidden', async () => {
@@ -1166,17 +1169,20 @@ describe('useKagentiAgents — error handling', () => {
     })
 
     const originalFetch = globalThis.fetch
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 403,
-    })
+    try {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 403,
+      })
 
-    renderHook(() => useKagentiAgents())
-    expect(capturedFetcher).not.toBeNull()
+      renderHook(() => useKagentiAgents())
+      expect(capturedFetcher).not.toBeNull()
 
-    await expect(capturedFetcher!()).rejects.toThrow(/Authentication failed \(403\)/)
+      await expect(capturedFetcher!()).rejects.toThrow(/Authentication failed \(403\)/)
 
-    globalThis.fetch = originalFetch
+    } finally {
+      globalThis.fetch = originalFetch
+    }
   })
 
   it('fetcher throws classified error on TypeError (network down)', async () => {
@@ -1196,14 +1202,17 @@ describe('useKagentiAgents — error handling', () => {
     })
 
     const originalFetch = globalThis.fetch
-    globalThis.fetch = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'))
+    try {
+      globalThis.fetch = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'))
 
-    renderHook(() => useKagentiAgents())
-    expect(capturedFetcher).not.toBeNull()
+      renderHook(() => useKagentiAgents())
+      expect(capturedFetcher).not.toBeNull()
 
-    await expect(capturedFetcher!()).rejects.toThrow(/not connected|Failed to fetch/i)
+      await expect(capturedFetcher!()).rejects.toThrow(/not connected|Failed to fetch/i)
 
-    globalThis.fetch = originalFetch
+    } finally {
+      globalThis.fetch = originalFetch
+    }
   })
 
   it('fetcher handles 404 Not Found with classified error', async () => {
@@ -1223,17 +1232,20 @@ describe('useKagentiAgents — error handling', () => {
     })
 
     const originalFetch = globalThis.fetch
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 404,
-    })
+    try {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+      })
 
-    renderHook(() => useKagentiAgents())
-    expect(capturedFetcher).not.toBeNull()
+      renderHook(() => useKagentiAgents())
+      expect(capturedFetcher).not.toBeNull()
 
-    await expect(capturedFetcher!()).rejects.toThrow(/not found/i)
+      await expect(capturedFetcher!()).rejects.toThrow(/not found/i)
 
-    globalThis.fetch = originalFetch
+    } finally {
+      globalThis.fetch = originalFetch
+    }
   })
 })
 
@@ -1255,17 +1267,20 @@ describe('useKagentiBuilds — error handling', () => {
     })
 
     const originalFetch = globalThis.fetch
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 401,
-    })
+    try {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+      })
 
-    renderHook(() => useKagentiBuilds())
-    expect(capturedFetcher).not.toBeNull()
+      renderHook(() => useKagentiBuilds())
+      expect(capturedFetcher).not.toBeNull()
 
-    await expect(capturedFetcher!()).rejects.toThrow(/Authentication failed \(401\)/)
+      await expect(capturedFetcher!()).rejects.toThrow(/Authentication failed \(401\)/)
 
-    globalThis.fetch = originalFetch
+    } finally {
+      globalThis.fetch = originalFetch
+    }
   })
 
   it('fetcher throws on network TypeError', async () => {
@@ -1285,14 +1300,17 @@ describe('useKagentiBuilds — error handling', () => {
     })
 
     const originalFetch = globalThis.fetch
-    globalThis.fetch = vi.fn().mockRejectedValue(new TypeError('NetworkError when attempting to fetch resource'))
+    try {
+      globalThis.fetch = vi.fn().mockRejectedValue(new TypeError('NetworkError when attempting to fetch resource'))
 
-    renderHook(() => useKagentiBuilds())
-    expect(capturedFetcher).not.toBeNull()
+      renderHook(() => useKagentiBuilds())
+      expect(capturedFetcher).not.toBeNull()
 
-    await expect(capturedFetcher!()).rejects.toThrow(/not connected|NetworkError/i)
+      await expect(capturedFetcher!()).rejects.toThrow(/not connected|NetworkError/i)
 
-    globalThis.fetch = originalFetch
+    } finally {
+      globalThis.fetch = originalFetch
+    }
   })
 })
 
@@ -1314,17 +1332,20 @@ describe('useKagentiTools — error handling', () => {
     })
 
     const originalFetch = globalThis.fetch
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 403,
-    })
+    try {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 403,
+      })
 
-    renderHook(() => useKagentiTools())
-    expect(capturedFetcher).not.toBeNull()
+      renderHook(() => useKagentiTools())
+      expect(capturedFetcher).not.toBeNull()
 
-    await expect(capturedFetcher!()).rejects.toThrow(/Authentication failed \(403\)/)
+      await expect(capturedFetcher!()).rejects.toThrow(/Authentication failed \(403\)/)
 
-    globalThis.fetch = originalFetch
+    } finally {
+      globalThis.fetch = originalFetch
+    }
   })
 })
 
