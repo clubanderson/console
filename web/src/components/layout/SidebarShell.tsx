@@ -460,6 +460,7 @@ export function SidebarShell({
             {!isCollapsed && <GripVertical className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />}
           </div>
         ) : (
+          <>
           <NavLink
             to={item.href}
             onClick={() => emitSidebarNavigated(item.href)}
@@ -517,6 +518,7 @@ export function SidebarShell({
                 </span>
               </span>
             )}
+          </>
         )}
       </div>
       </Tooltip>
