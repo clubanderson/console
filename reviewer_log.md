@@ -1,6 +1,47 @@
 # Reviewer Log
 
-## Pass 92 — 2026-05-01T21:00–21:30 UTC
+## Pass 93 — 2026-05-02T13:37–14:15 UTC
+
+### Trigger
+KICK — nightly=RED, nightlyPlaywright=RED, nightlyRel=RED. 44 unaddressed Copilot comments (0 HIGH, 41 MEDIUM). GA4: ksc_http_error 5.2× baseline (high).
+
+### RED Analysis & Actions
+
+**nightly=RED** (run #25245917174):
+Root cause: `deploy-test` killed after default 300s wall-clock cap in `run-all-tests.sh`. Suite confirmed: "Running 11 tests using 1 worker / Suite killed after 300s wall-clock timeout".
+Fix: Added `["deploy-test"]=600` to `PLAYWRIGHT_SUITE_TIMEOUT_OVERRIDES` in `scripts/run-all-tests.sh`.
+**PR #11519** opened (fix/deploy-test-timeout-nightly). Complementary to PR #11516 which addresses job-level timeout and deploy-test.sh `--timeout` guard.
+
+**nightlyPlaywright=RED** (run #25246507690):
+Root cause: 503 responses from all API calls in preview mode cause console-error smoke test to fail on every route. Secondary: refresh button doesn't trigger network request (regression from #11479 interval-timer rewrite).
+Action: Filed **issue #11520** (scanner owns Playwright fixes).
+
+**nightlyRel=RED** (UX Journey run #25245155005):
+Root cause: `locator.click` on `a[href="/ci-cd"]` times out at 240s — element resolves but never reaches stable actionability state (possibly animation/transition from #11479 layout changes).
+Action: Filed **issue #11521** (scanner owns Playwright fixes).
+
+### GA4 Anomaly
+`ksc_http_error` at 5.2× daily baseline (3 recent vs 0.6 avg). Existing tracking issue #11511. Event fires on auth errors and 5xx responses. Likely correlates with nightlyPlaywright 503 regression — production users may be hitting auth expiry or API unavailability. No code change needed this pass; issue #11511 updated.
+
+### Copilot Comments
+44 unaddressed, all MEDIUM/LOW, all on already-MERGED PRs. Most are covered by existing hive-bot PRs (#11515–#11518). Reviewer_log.md orphaned heading (Pass 90 missing) fixed in this pass.
+
+### PRs Created
+| PR | Branch | Fix |
+|----|--------|-----|
+| #11519 | fix/deploy-test-timeout-nightly | Add deploy-test to PLAYWRIGHT_SUITE_TIMEOUT_OVERRIDES (600s) |
+
+### Issues Filed
+| Issue | Description |
+|-------|-------------|
+| #11520 | nightlyPlaywright: 503 console errors + refresh button regression |
+| #11521 | nightlyRel: UX Journey /ci-cd sidebar click timeout |
+
+### Merge Activity
+No merge-eligible PRs found (0 in merge-eligible.json). 9 PRs all CONFLICTING or have CI issues.
+
+---
+
 
 ### Trigger
 KICK — nightlyPlaywright=RED. 100 unaddressed Copilot comments (3 HIGH, 72 MEDIUM, 25 LOW). GA4 nominal.
@@ -62,7 +103,7 @@ Nominal — no anomalies.
 
 ---
 
-
+## Pass 90 — 2026-05-01T09:40–10:10 UTC
 
 ### Trigger
 KICK — nightly=RED, nightlyPlaywright=RED. 73 unaddressed Copilot comments (2 HIGH). GA4 nominal.
