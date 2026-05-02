@@ -682,8 +682,8 @@ export const CardWrapper = memo(function CardWrapper({
             onMouseLeave={() => setShowSummary(false)}
           >
             {/* Header */}
-            <div data-tour="card-header" className="flex flex-wrap items-center justify-between gap-y-2 px-4 py-3 border-b border-border/50">
-              <div className="flex items-center gap-2 min-w-0">
+            <div data-tour="card-header" className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3 border-b border-border/50">
+              <div className="flex items-center gap-2 min-w-0 flex-wrap">
                 {dragHandle}
                 {ResolvedIcon && <ResolvedIcon className={cn('w-4 h-4 shrink-0', resolvedIconColor)} />}
                 <h3 className="text-sm font-medium text-foreground truncate">{title}</h3>

@@ -119,13 +119,13 @@ export function DashboardHeader({
       </div>
 
       {/* Right side: controls + timestamp below */}
-      <div className="flex flex-col items-end gap-0.5 shrink-0">
+      <div className="flex flex-col items-end gap-1.5 shrink-0">
         <div className="flex items-center gap-3">
           {rightExtra}
           {onAutoRefreshChange && (
             <label
               htmlFor={autoRefreshId || 'auto-refresh'}
-              className="flex items-center gap-1.5 cursor-pointer text-xs text-muted-foreground"
+              className="flex items-center gap-1.5 cursor-pointer text-xs text-muted-foreground whitespace-nowrap"
               title={t('shared.dashboardHeader.autoRefreshTitle')}
             >
               <input
