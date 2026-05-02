@@ -1,5 +1,39 @@
 # Reviewer Log
 
+## Pass 110 — 2026-05-02T05:52 UTC
+
+### Trigger
+KICK: nightlyPlaywright=RED. 59 unaddressed Copilot comments (3 HIGH). git pull /tmp/hive.
+
+### RED Indicators
+- **nightlyPlaywright=RED**: Scanner owns — Issue #11348 open. No source-file changes needed.
+
+### Hive Pull
+`/tmp/hive` has unrelated history — cannot merge. No action needed.
+
+### HIGH Copilot Comments — All Confirmed Resolved in HEAD
+
+| PR | File:Line | Issue | Status |
+|----|-----------|-------|--------|
+| #11380 | startup-oauth.sh:570 | Stale watchdog / `parallel_build` stage | ✅ `WATCHER_NEEDS_REBUILD` check at lines 401–415 |
+| #11326 | drasi_proxy_test.go:25 | Missing hop-by-hop upstream assertion | ✅ `assert.Empty(Proxy-Authenticate)` at line 26 |
+| #11355 | FeedbackModal.tsx:234 | OAuth param leak via `window.location.href` | ✅ Uses `origin+pathname` (no query/hash) |
+
+### MEDIUM Copilot Comments
+All 43 MEDIUM items resolved in prior passes (Passes 107–109). No new MEDIUM items introduced.
+
+### GA4
+Nominal — 0 anomalies.
+
+### Merge-eligible PRs
+merge-eligible.json count = 0. No PRs to merge.
+
+### New Issues (scanner lane)
+5 new `kind/bug` issues filed (#11385–#11389) — all scanner lane, not reviewer scope.
+
+### Outstanding
+- nightlyPlaywright=RED: scanner owns — Issue #11348 open
+
 ## Pass 107 — 2026-05-02T05:19 UTC
 
 ### Trigger
