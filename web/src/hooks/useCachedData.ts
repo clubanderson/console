@@ -85,6 +85,7 @@ export type {
 // K8s resource hooks
 export {
   useCachedPVCs,
+  useCachedPVs,
   useCachedNamespaces,
   useCachedJobs,
   useCachedHPAs,

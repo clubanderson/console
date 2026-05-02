@@ -19,6 +19,7 @@ import type {
   GPUNode,
   GPUNodeHealthStatus,
   PVC,
+  PV,
   Job,
   HPA,
   HelmRelease,
@@ -353,6 +354,12 @@ export const getDemoPVCs = (): PVC[] => [
   { name: 'data-postgres-0', namespace: 'production', cluster: 'eks-prod-us-east-1', status: 'Bound', storageClass: 'gp3', capacity: '100Gi', accessModes: ['ReadWriteOnce'], age: '30d' },
   { name: 'redis-data-0', namespace: 'data', cluster: 'gke-staging', status: 'Bound', storageClass: 'standard', capacity: '50Gi', accessModes: ['ReadWriteOnce'], age: '14d' },
   { name: 'ml-scratch', namespace: 'ml-workloads', cluster: 'vllm-gpu-cluster', status: 'Pending', storageClass: 'fast-nvme', capacity: '500Gi', accessModes: ['ReadWriteMany'], age: '1h' },
+]
+
+export const getDemoPVs = (): PV[] => [
+  { name: 'pv-storage-1', cluster: 'eks-prod-us-east-1', status: 'Available', capacity: '100Gi', storageClass: 'gp3', reclaimPolicy: 'Delete', accessModes: ['ReadWriteOnce'], age: '60d' },
+  { name: 'pv-storage-2', cluster: 'eks-prod-us-east-1', status: 'Bound', capacity: '50Gi', storageClass: 'standard', claimRef: 'production/data-postgres-0', reclaimPolicy: 'Recycle', accessModes: ['ReadWriteOnce'], age: '30d' },
+  { name: 'pv-shared-1', cluster: 'gke-staging', status: 'Available', capacity: '500Gi', storageClass: 'fast-nvme', reclaimPolicy: 'Retain', accessModes: ['ReadWriteMany'], age: '14d' },
 ]
 
 export const getDemoNamespaces = (): string[] =>

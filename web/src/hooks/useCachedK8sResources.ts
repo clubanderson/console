@@ -11,6 +11,7 @@ import { fetchFromAllClusters, fetchViaSSE, getToken, getClusterFetcher } from '
 import { FETCH_DEFAULT_TIMEOUT_MS } from '../lib/constants/network'
 import {
   getDemoPVCs,
+  getDemoPVs,
   getDemoNamespaces,
   getDemoJobs,
   getDemoHPAs,
@@ -26,6 +27,7 @@ import {
 } from './useCachedData/demoData'
 import type {
   PVC,
+  PV,
   Job,
   HPA,
   ConfigMap,
@@ -114,6 +116,14 @@ export const useCachedPVCs = createCachedK8sResourceHook<PVC>({
   responseKey: 'pvcs',
   aliasKey: 'pvcs',
   getDemoData: getDemoPVCs,
+})
+
+export const useCachedPVs = createCachedK8sResourceHook<PV>({
+  cacheKeyPrefix: 'pvs',
+  apiEndpoint: 'pvs',
+  responseKey: 'pvs',
+  aliasKey: 'pvs',
+  getDemoData: getDemoPVs,
 })
 
 export const useCachedJobs = createCachedK8sResourceHook<Job>({

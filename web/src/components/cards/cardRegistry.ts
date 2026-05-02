@@ -59,6 +59,7 @@ const ClusterResourceTree = safeLazy(() => import('./cluster-resource-tree/Clust
 const ChangeTimeline = safeLazy(() => import('./change_timeline/ChangeTimeline'), 'ChangeTimeline')
 const StorageOverview = safeLazy(() => import('./StorageOverview'), 'StorageOverview')
 const PVCStatus = safeLazy(() => import('./PVCStatus'), 'PVCStatus')
+const PVStatus = safeLazy(() => import('./PVStatus'), 'PVStatus')
 const NetworkOverview = safeLazy(() => import('./NetworkOverview'), 'NetworkOverview')
 const ServiceStatus = safeLazy(() => import('./ServiceStatus'), 'ServiceStatus')
 const ComputeOverview = safeLazy(() => import('./ComputeOverview'), 'ComputeOverview')
@@ -487,6 +488,7 @@ const RAW_CARD_COMPONENTS: Record<string, CardComponent> = {
   // Dashboard-specific cards
   storage_overview: StorageOverview,
   pvc_status: PVCStatus,
+  pv_status: PVStatus,
   network_overview: NetworkOverview,
   service_status: ServiceStatus,
   compute_overview: ComputeOverview,
@@ -925,7 +927,7 @@ function _makeUnifiedEntry(cardType: string): CardComponent | undefined {
 const _UNIFIED_ONLY_TYPES = [
   'node_status', 'statefulset_status', 'daemonset_status', 'job_status',
   'cronjob_status', 'replicaset_status', 'hpa_status', 'configmap_status',
-  'secret_status', 'pv_status', 'ingress_status', 'network_policy_status',
+  'secret_status', 'ingress_status', 'network_policy_status',
   'namespace_status', 'resource_quota_status', 'limit_range_status',
   'service_account_status', 'role_status', 'role_binding_status',
   'operator_subscription_status',
@@ -1092,6 +1094,7 @@ const CARD_CHUNK_PRELOADERS: Record<string, () => Promise<unknown>> = {
   cluster_resource_tree: () => import('./cluster-resource-tree/ClusterResourceTree'),
   storage_overview: () => import('./StorageOverview'),
   pvc_status: () => import('./PVCStatus'),
+  pv_status: () => import('./PVStatus'),
   network_overview: () => import('./NetworkOverview'),
   service_status: () => import('./ServiceStatus'),
   compute_overview: () => import('./ComputeOverview'),
@@ -1763,6 +1766,7 @@ export const CARD_DEFAULT_WIDTHS: Record<string, number> = {
   wasmcloud_status: 6,
   volcano_status: 6,
   pvc_status: 6,
+  pv_status: 6,
   gpu_status: 6,
   gpu_inventory: 6,
   gpu_workloads: 6,

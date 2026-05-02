@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useCachedPods } from '../../hooks/useCachedData'
-import { useNetworkPolicies } from '../../hooks/mcp/networking'
+import { useCachedPods, useCachedNetworkPolicies } from '../../hooks/useCachedData'
 import { useCardLoadingState } from './CardDataContext'
 import { CardEmptyState } from '../../lib/cards/CardComponents'
 import { Shield } from 'lucide-react'
@@ -20,7 +19,7 @@ interface NamespaceCoverage {
 export function NetworkPolicyCoverage() {
   const { t } = useTranslation('cards')
   const { pods, isLoading: podsLoading, isRefreshing, isDemoFallback, isFailed: podsFailed, consecutiveFailures: podsFailures } = useCachedPods()
-  const { networkpolicies, isLoading: policiesLoading, isFailed: policiesFailed } = useNetworkPolicies()
+  const { networkpolicies, isLoading: policiesLoading, isFailed: policiesFailed } = useCachedNetworkPolicies()
   const [showUncovered, setShowUncovered] = useState(false)
 
   const isLoading = podsLoading || policiesLoading
