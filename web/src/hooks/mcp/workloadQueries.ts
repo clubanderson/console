@@ -1371,22 +1371,62 @@ export function useJobs(cluster?: string, namespace?: string): UseJobsResult {
       const sseParams: Record<string, string> = {}
       if (cluster) sseParams.cluster = cluster
       if (namespace) sseParams.namespace = namespace
+      let clusterErrorCount = 0
+      let clusterDataCount = 0
       const result = await fetchSSE<Job>({
         url: `${LOCAL_AGENT_HTTP_URL}/jobs/stream`,
         params: sseParams,
         itemsKey: 'jobs',
         signal: abortController.signal,
         onClusterData: (_clusterName, items) => {
+          clusterDataCount++
           setJobs(prev => [...prev, ...items])
           setIsLoading(false)
         },
+        onClusterError: () => {
+          clusterErrorCount++
+        },
       })
-      setJobs(result)
-      setError(null)
-      setConsecutiveFailures(0)
+      // If all clusters returned errors and no data was received, treat as failure
+      if (result.length === 0 && clusterErrorCount > 0 && clusterDataCount === 0) {
+        const message = `All cluster fetches failed (${clusterErrorCount} cluster${clusterErrorCount > 1 ? 's' : ''} unreachable)`
+        console.warn('[useJobs]', message)
+        setError(message)
+        setConsecutiveFailures(prev => prev + 1)
+        setJobs([])
+      } else {
+        setJobs(result)
+        setError(null)
+        setConsecutiveFailures(0)
+      }
     } catch (err: unknown) {
       if (err instanceof DOMException && err.name === 'AbortError') return
       const message = err instanceof Error ? err.message : 'Failed to fetch jobs'
+
+      // Fallback: if SSE endpoint returns 404 (agent lacks /jobs/stream),
+      // try the standard /jobs endpoint
+      if (message.includes('404')) {
+        try {
+          const params = new URLSearchParams()
+          if (cluster) params.append('cluster', cluster)
+          if (namespace) params.append('namespace', namespace)
+          const response = await fetchWithRetry(`${LOCAL_AGENT_HTTP_URL}/jobs?${params}`, {
+            headers: { 'Accept': 'application/json' },
+            timeoutMs: MCP_HOOK_TIMEOUT_MS,
+          })
+          if (response.ok) {
+            const data = await response.json()
+            setJobs(data.jobs || [])
+            setError(null)
+            setConsecutiveFailures(0)
+            setIsLoading(false)
+            return
+          }
+        } catch (fallbackErr: unknown) {
+          console.debug('[useJobs] Fallback fetch also failed:', fallbackErr)
+        }
+      }
+
       console.warn('[useJobs] Fetch failed:', message)
       setError(message)
       setConsecutiveFailures(prev => prev + 1)
