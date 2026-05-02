@@ -48,7 +48,7 @@ interface EventStreamConfig {
 }
 
 function EventStreamInternal({ config }: { config?: EventStreamConfig }) {
-  const { t } = useTranslation()
+  const { t } = useTranslation(['common', 'cards'])
   const { isDemoMode } = useDemoMode()
   const userLimit =
     typeof config?.limit === 'number' && config.limit > 0 ? config.limit : null
