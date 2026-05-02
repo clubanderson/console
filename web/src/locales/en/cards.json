@@ -690,6 +690,7 @@
     "loadingTimedOutMessage": "This card took too long to load data. This may be due to a network issue or the data source being unavailable.",
     "loadingTimedOutRetry": "Retry",
     "refreshData": "Refresh data",
+    "cardControls": "Controls for {{title}}",
     "expandFullScreen": "Expand card to full screen",
     "reportIssue": "Report issue for this card",
     "cardMenuTooltip": "Card menu - configure, replace, or remove",
@@ -728,7 +729,8 @@
     "keepThisTooltip": "Cancel the swap and keep this card",
     "cardInfo": "Card information",
     "noDataTitle": "No data available",
-    "noDataMessage": "This card has no data to display. Data may become available when the data source is connected."
+    "noDataMessage": "This card has no data to display. Data may become available when the data source is connected.",
+    "cardActions": "Card actions"
   },
   "github": {
     "pullRequests": "Pull Requests",
@@ -1060,7 +1062,14 @@
     "repairSuggestion": "Repair Suggestion",
     "applyRepair": "Apply Repair",
     "watchedWorkloads": "Watched Workloads",
-    "matchLabels": "Match Labels"
+    "matchLabels": "Match Labels",
+    "diagnoseRequiresCluster": "Diagnose requires a connected cluster or AI API key",
+    "diagnoseNoResults": "No issues found — all monitored resources appear healthy",
+    "repairComplete": "Repair actions completed successfully",
+    "repairFailed": "Repair actions failed",
+    "diagnoseComplete": "Diagnosis complete",
+    "diagnoseFailed": "Diagnosis failed",
+    "close": "Close"
   },
   "llmd": {
     "inference": "Inference",
@@ -1205,6 +1214,7 @@
     "monitoring": "Monitoring",
     "deviceDisappearances": "Device Disappearances",
     "noDevicesDetected": "No devices detected",
+    "noDevicesExplanation": "This is normal when no GPU, NIC, NVMe, or InfiniBand devices are configured on this node.",
     "hideSnoozedAlerts": "Hide snoozed alerts",
     "showSnoozedAlerts": "Show snoozed alerts",
     "snoozeAllVisible": "Snooze all visible alerts",
@@ -2554,8 +2564,8 @@
     "unknown": "Unknown issue detected"
   },
   "eventsTimeline": {
-    "noEvents": "No events",
-    "noEventsHint": "Cluster events will appear here",
+    "noEvents": "No timeline data",
+    "noEventsHint": "Event frequency trends and patterns will be charted here over time.",
     "range15m": "15m",
     "range1h": "1h",
     "range6h": "6h",
@@ -4654,5 +4664,10 @@
     "updated": "Updated",
     "skipped": "Skipped",
     "failed": "Failed"
+  },
+  "eventStream": {
+    "noEvents": "No events detected",
+    "noEventsHint": "Live cluster events will stream here as they occur. Connect a cluster to begin.",
+    "noMatchingEvents": "No events match current filters"
   }
 }

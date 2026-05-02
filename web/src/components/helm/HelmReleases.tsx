@@ -41,7 +41,7 @@ export function HelmReleases() {
     <DashboardPage
       title="Helm Releases"
       subtitle="Monitor Helm chart releases and versions"
-      icon="Ship"
+      icon="Package"
       rightExtra={<RotatingTip page="helm" />}
       storageKey={HELM_CARDS_KEY}
       defaultCards={DEFAULT_HELM_CARDS}

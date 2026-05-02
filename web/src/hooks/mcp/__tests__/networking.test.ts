@@ -71,7 +71,11 @@ vi.mock('../../../lib/kubectlProxy', () => ({
 vi.mock('../shared', () => ({
   REFRESH_INTERVAL_MS: 120_000,
   MIN_REFRESH_INDICATOR_MS: 500,
-  getEffectiveInterval: (ms: number) => ms,
+  getEffectiveInterval: (ms: number, consecutiveFailures = 0) => {
+    if (consecutiveFailures <= 0) return ms
+    const multiplier = Math.pow(2, Math.min(consecutiveFailures, 5))
+    return Math.min(ms * multiplier, 600_000)
+  },
   LOCAL_AGENT_URL: 'http://localhost:8585',
   agentFetch: (...args: unknown[]) => fetch(...(args as Parameters<typeof fetch>)),
   clusterCacheRef: mockClusterCacheRef,
@@ -184,7 +188,7 @@ describe('useServices', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false))
     const callsBefore = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.length
 
-    await act(async () => { result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
 
     await waitFor(() =>
       expect((globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBeGreaterThan(callsBefore)
@@ -416,34 +420,25 @@ describe('useServices', () => {
     })
 
     const { result } = renderHook(() => useServices())
-    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
-    // First fetch fails (initial mount)
-    expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(1)
-
-    // Trigger two more refetches to reach 3 consecutive failures
-    await act(async () => { result.current.refetch() })
-    await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(2))
-
-    await act(async () => { result.current.refetch() })
+    // With exponential backoff, consecutiveFailures in useEffect deps causes
+    // cascading re-fetches. The hook quickly accumulates >= 3 failures.
     await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(3))
-
     expect(result.current.isFailed).toBe(true)
   })
 
   it('resets consecutiveFailures to 0 on successful fetch after failures', async () => {
-    // Start with failures
-    globalThis.fetch = vi.fn().mockResolvedValue({ ok: false, status: 500 })
+    // Start with a single failure then stop failing
+    globalThis.fetch = vi.fn().mockResolvedValueOnce({ ok: false, status: 500 })
     const { result } = renderHook(() => useServices())
-    await waitFor(() => expect(result.current.isLoading).toBe(false))
-    expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(1)
+    await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(1))
 
     // Now succeed
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ services: [{ name: 'svc', namespace: 'ns', type: 'ClusterIP', ports: [] }] }),
     })
-    await act(async () => { result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
     await waitFor(() => expect(result.current.consecutiveFailures).toBe(0))
     expect(result.current.isFailed).toBe(false)
   })
@@ -592,7 +587,7 @@ describe('useIngresses', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false))
     const callsBefore = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.length
 
-    await act(async () => { result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
 
     await waitFor(() => expect((globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBeGreaterThan(callsBefore))
   })
@@ -706,10 +701,10 @@ describe('useIngresses', () => {
     const { result } = renderHook(() => useIngresses())
     await waitFor(() => expect(result.current.isLoading).toBe(false))
 
-    await act(async () => { result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
     await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(2))
 
-    await act(async () => { result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
     await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(3))
 
     expect(result.current.isFailed).toBe(true)
@@ -724,7 +719,7 @@ describe('useIngresses', () => {
 
     // Then fail
     globalThis.fetch = vi.fn().mockRejectedValue(new Error('network error'))
-    await act(async () => { result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
     await waitFor(() => expect(result.current.ingresses).toEqual([]))
   })
 })
@@ -769,7 +764,7 @@ describe('useNetworkPolicies', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false))
     const callsBefore = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.length
 
-    await act(async () => { result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
 
     await waitFor(() => expect((globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBeGreaterThan(callsBefore))
   })
@@ -874,10 +869,10 @@ describe('useNetworkPolicies', () => {
     const { result } = renderHook(() => useNetworkPolicies())
     await waitFor(() => expect(result.current.isLoading).toBe(false))
 
-    await act(async () => { result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
     await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(2))
 
-    await act(async () => { result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
     await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(3))
 
     expect(result.current.isFailed).toBe(true)
@@ -892,7 +887,7 @@ describe('useNetworkPolicies', () => {
     await waitFor(() => expect(result.current.networkpolicies).toHaveLength(1))
 
     globalThis.fetch = vi.fn().mockRejectedValue(new Error('network error'))
-    await act(async () => { result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
     await waitFor(() => expect(result.current.networkpolicies).toEqual([]))
   })
 

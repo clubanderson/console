@@ -132,7 +132,10 @@ const SIDEBAR_MAX_WIDTH_PX = 480
 /** Index of the primary (dashboard list) section — "Add more..." button renders after it */
 const PRIMARY_SECTION_INDEX = 0
 
-/** Map sidebar item href to dashboard config ID for card count display */
+/** Map sidebar item href to dashboard config ID for card count display.
+ * NOTE: '/alerts' is intentionally excluded — displaying the card count
+ * next to "Alerts" would be confused with the active alert count shown
+ * in the header badge (#11404). */
 const HREF_TO_DASHBOARD_ID: Record<string, string> = {
   '/': 'main', '/compute': 'compute', '/security': 'security',
   '/gitops': 'gitops', '/storage': 'storage', '/network': 'network',
@@ -140,7 +143,7 @@ const HREF_TO_DASHBOARD_ID: Record<string, string> = {
   '/clusters': 'clusters', '/compliance': 'compliance', '/cost': 'cost',
   '/gpu-reservations': 'gpu', '/nodes': 'nodes', '/deployments': 'deployments',
   '/pods': 'pods', '/services': 'services', '/helm': 'helm',
-  '/alerts': 'alerts', '/ai-ml': 'ai-ml', '/ci-cd': 'ci-cd',
+  '/ai-ml': 'ai-ml', '/ci-cd': 'ci-cd',
   '/logs': 'logs', '/data-compliance': 'data-compliance', '/arcade': 'arcade',
   '/deploy': 'deploy', '/ai-agents': 'ai-agents',
   '/llm-d-benchmarks': 'llm-d-benchmarks', '/cluster-admin': 'cluster-admin',
@@ -460,6 +463,7 @@ export function SidebarShell({
             {!isCollapsed && <GripVertical className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />}
           </div>
         ) : (
+          <>
           <NavLink
             to={item.href}
             onClick={() => emitSidebarNavigated(item.href)}
@@ -477,7 +481,11 @@ export function SidebarShell({
             {renderIcon(item.icon, isCollapsed ? 'w-6 h-6' : 'w-5 h-5')}
             {!isCollapsed && (() => {
               const dashId = HREF_TO_DASHBOARD_ID[item.href]
-              const count = dashId ? DASHBOARD_CONFIGS[dashId]?.cards?.length : null
+              // Skip card count for alerts dashboard — the header AlertBadge already
+              // shows the actual firing alert count; showing the dashboard card count
+              // here (e.g. "5") creates a conflicting signal (#11404).
+              const count = dashId && item.href !== '/alerts'
+                ? DASHBOARD_CONFIGS[dashId]?.cards?.length : null
               const isGC = isGroundControlItem(item.href)
               return (
                 <span className="flex-1 min-w-0 flex items-center gap-1">
@@ -486,38 +494,40 @@ export function SidebarShell({
                     <Satellite className="w-3.5 h-3.5 text-purple-400 shrink-0" aria-label="Ground Control dashboard" />
                   )}
                   {count != null && (
-                    <span className="text-[10px] text-muted-foreground/40 tabular-nums ml-0.5 shrink-0">{count}</span>
+                    <span
+                      className="text-[10px] text-muted-foreground/40 tabular-nums ml-0.5 shrink-0"
+                      title={t('sidebar.cardCount', { count })}
+                    >{count}</span>
                   )}
                 </span>
               )
             })()}
+          </NavLink>
             {!isCollapsed && canDrag && (
-              <span className="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity bg-background/80 backdrop-blur-xs rounded px-1">
+              <span className="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity bg-background/80 backdrop-blur-xs rounded px-1 z-10">
                 {!PROTECTED_SIDEBAR_IDS.includes(item.id) && (
-                  <span
-                    role="button"
-                    tabIndex={0}
+                  <button
+                    type="button"
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeItem(item.id) }}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); removeItem(item.id) } }}
                     className="p-1 rounded hover:bg-red-500/20 hover:text-red-400 text-muted-foreground/50 transition-colors"
                     title={t('sidebar.removeFromSidebar')}
                     aria-label={t('sidebar.removeFromSidebar')}
                   >
                     <X className="w-3.5 h-3.5" aria-hidden="true" />
-                  </span>
+                  </button>
                 )}
                 <span
                   className="p-1 rounded hover:bg-secondary text-muted-foreground/50 hover:text-muted-foreground cursor-grab active:cursor-grabbing transition-colors"
+                  aria-hidden="true"
                   onMouseDown={(e) => e.stopPropagation()}
                 >
                   <GripVertical
                     className="w-4 h-4"
-                    aria-hidden="true"
                   />
                 </span>
               </span>
             )}
-          </NavLink>
+          </>
         )}
       </div>
       </Tooltip>
@@ -621,7 +631,7 @@ export function SidebarShell({
                   className="w-full flex items-center gap-3 px-3 py-1.5 mt-1 text-xs text-muted-foreground/60 hover:text-muted-foreground hover:bg-secondary/30 rounded-lg transition-colors"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>{t('sidebar.addMore', 'Add more...')}</span>
+                  <span>{t('sidebar.addMore', 'Add dashboard cards…')}</span>
                 </button>
               )}
             </Fragment>
@@ -662,7 +672,11 @@ export function SidebarShell({
             <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
               {t('labels.clusterStatus')}
             </h4>
+            {deduplicatedClusters.length === 0 ? (
+              <p className="text-xs text-muted-foreground">{t('labels.noClusters')}</p>
+            ) : (
             <div className="space-y-2">
+              {healthyClusters > 0 && (
               <button
                 onClick={() => handleClusterStatusClick('healthy')}
                 className="w-full flex items-center justify-between hover:bg-secondary/50 rounded px-1 py-0.5 transition-colors"
@@ -671,8 +685,13 @@ export function SidebarShell({
                   <CheckCircle2 className="w-3.5 h-3.5 text-green-400" aria-hidden="true" />
                   {t('labels.healthy')}
                 </span>
-                <span className="text-sm font-medium text-green-400">{healthyClusters}</span>
+                <span
+                  className="text-sm font-medium text-green-400"
+                  title={t('sidebar.healthyClusters', { count: healthyClusters })}
+                >{healthyClusters}</span>
               </button>
+              )}
+              {unhealthyClusters > 0 && (
               <button
                 onClick={() => handleClusterStatusClick('unhealthy')}
                 className="w-full flex items-center justify-between hover:bg-secondary/50 rounded px-1 py-0.5 transition-colors"
@@ -681,8 +700,13 @@ export function SidebarShell({
                   <AlertTriangle className="w-3.5 h-3.5 text-red-400" aria-hidden="true" />
                   {t('labels.unhealthy')}
                 </span>
-                <span className="text-sm font-medium text-red-400">{unhealthyClusters}</span>
+                <span
+                  className="text-sm font-medium text-red-400"
+                  title={t('sidebar.unhealthyClusters', { count: unhealthyClusters })}
+                >{unhealthyClusters}</span>
               </button>
+              )}
+              {unreachableClusters > 0 && (
               <button
                 onClick={() => handleClusterStatusClick('unreachable')}
                 className="w-full flex items-center justify-between hover:bg-secondary/50 rounded px-1 py-0.5 transition-colors"
@@ -691,27 +715,36 @@ export function SidebarShell({
                   <WifiOff className="w-3.5 h-3.5 text-yellow-400" aria-hidden="true" />
                   {t('labels.offline')}
                 </span>
-                <span className="text-sm font-medium text-yellow-400">{unreachableClusters}</span>
+                <span
+                  className="text-sm font-medium text-yellow-400"
+                  title={t('sidebar.unreachableClusters', { count: unreachableClusters })}
+                >{unreachableClusters}</span>
               </button>
+              )}
+              {healthyClusters === 0 && unhealthyClusters === 0 && unreachableClusters === 0 && (
+                <span className="text-xs text-muted-foreground italic">{t('labels.noClusters', 'No clusters configured')}</span>
+              )}
             </div>
+            )}
           </div>
         )}
 
-        {/* Viewer count + commit hash */}
+        {/* Viewer count + commit hash — separated from cluster status to prevent
+          * the commit SHA from visually merging with cluster counts (#11403). */}
         {features.activeUsers && !isCollapsed && (
-          <div className="mt-auto pt-4 flex flex-col items-center gap-1">
+          <div className="mt-auto pt-4 border-t border-border/30 flex flex-col items-center gap-1">
             <div className="flex items-center justify-center gap-2">
               <div
                 className="flex items-center gap-1 px-2 text-muted-foreground/60"
-                title={t('sidebar.activeViewers', { count: viewerCount })}
+                aria-label={t('sidebar.activeViewers', { count: viewerCount })}
               >
-                <User className={cn('w-3 h-3', viewersError && 'text-red-400')} />
-                <span className="text-2xs tabular-nums">
+                <User className={cn('w-3 h-3', viewersError && 'text-red-400')} aria-hidden="true" />
+                <span className="text-2xs tabular-nums" aria-hidden="true">
                   {viewersError ? '!' : viewersLoading ? '…' : viewerCount}
                 </span>
               </div>
-              <span className="text-2xs text-muted-foreground/40 font-mono" title={`Commit: ${__COMMIT_HASH__}`}>
-                {__COMMIT_HASH__.substring(0, 7)}
+              <span className="text-2xs text-muted-foreground/40 font-mono" aria-label={`Commit: ${__COMMIT_HASH__}`}>
+                #{__COMMIT_HASH__.substring(0, 7)}
               </span>
             </div>
             {/* Developer mode: warn when running an older commit, or show upgrade progress */}
@@ -767,6 +800,7 @@ export function SidebarShell({
             aria-expanded={!config.collapsed}
             className="hidden md:flex items-center justify-center w-8 h-8 rounded-full bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors"
             title={config.collapsed ? t('layout.sidebar.expandSidebar') : t('layout.sidebar.collapseSidebar')}
+            aria-label={config.collapsed ? t('layout.sidebar.expandSidebar') : t('layout.sidebar.collapseSidebar')}
           >
             {config.collapsed ? <ChevronRight className="w-3.5 h-3.5" aria-hidden="true" /> : <ChevronLeft className="w-3.5 h-3.5" aria-hidden="true" />}
           </button>
@@ -780,8 +814,9 @@ export function SidebarShell({
                 : "bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80"
             )}
             title={isPinned ? t('layout.sidebar.unpinSidebar') : t('layout.sidebar.pinSidebar')}
+            aria-label={isPinned ? t('layout.sidebar.unpinSidebar') : t('layout.sidebar.pinSidebar')}
           >
-            {isPinned ? <Pin className="w-3.5 h-3.5" /> : <PinOff className="w-3.5 h-3.5" />}
+            {isPinned ? <Pin className="w-3.5 h-3.5" aria-hidden="true" /> : <PinOff className="w-3.5 h-3.5" aria-hidden="true" />}
           </button>
         </div>
       )}

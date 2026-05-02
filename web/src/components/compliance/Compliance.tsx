@@ -245,7 +245,7 @@ export function Compliance() {
     <DashboardPage
       title="Compliance"
       subtitle="Security scanning, vulnerability assessment, and policy enforcement"
-      icon="Shield"
+      icon="ClipboardCheck"
       storageKey={COMPLIANCE_CARDS_KEY}
       defaultCards={DEFAULT_COMPLIANCE_CARDS}
       statsType="compliance"

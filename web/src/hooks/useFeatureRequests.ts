@@ -90,6 +90,33 @@ export interface ConsoleError {
   source?: string
 }
 
+export interface FailedApiCall {
+  timestamp: string
+  status: number | string
+  endpoint: string
+  detail?: string
+}
+
+export interface DiagnosticInfo {
+  agent_version?: string
+  commit_sha?: string
+  build_time?: string
+  go_version?: string
+  agent_os?: string
+  agent_arch?: string
+  install_method?: string
+  clusters?: number
+  agent_connection_status?: string
+  agent_connection_failures?: number
+  agent_last_error?: string
+  browser_user_agent?: string
+  browser_platform?: string
+  browser_language?: string
+  screen_resolution?: string
+  window_size?: string
+  page_url?: string
+}
+
 export interface CreateFeatureRequestInput {
   title: string
   description: string
@@ -99,6 +126,10 @@ export interface CreateFeatureRequestInput {
   screenshots?: string[]
   /** Recent browser console errors captured automatically for bug reports */
   console_errors?: ConsoleError[]
+  /** Recent failed API calls (4xx/5xx) captured automatically */
+  failed_api_calls?: FailedApiCall[]
+  /** Agent and browser diagnostics for debugging */
+  diagnostics?: DiagnosticInfo
 }
 
 export interface SubmitFeedbackInput {

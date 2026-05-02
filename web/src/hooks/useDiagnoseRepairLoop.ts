@@ -77,6 +77,14 @@ export function useDiagnoseRepairLoop(options: UseDiagnoseRepairLoopOptions): Us
     if (mission.status === 'completed' || mission.status === 'failed' || mission.status === 'cancelled') {
       setState(prev => {
         if (prev.phase !== 'diagnosing') return prev
+        // If the mission failed or was cancelled, transition to failed with specific context
+        if (mission.status === 'failed' || mission.status === 'cancelled') {
+          const stepContext = mission.currentStep ? ` at step: ${mission.currentStep}` : ''
+          const errorDetail = mission.status === 'failed'
+            ? `Diagnosis failed${stepContext}`
+            : `Diagnosis cancelled${stepContext}`
+          return { ...prev, phase: 'failed', error: errorDetail }
+        }
         // Generate proposed repairs from issues
         const proposedRepairs: ProposedRepair[] = repairable
           ? prev.issuesFound.map((issue, idx) => ({
@@ -140,11 +148,15 @@ ${repairable ? '3. For each issue, propose a specific repair action with risk as
 
 Respond with your analysis in a clear, structured format. ${repairable ? 'For each proposed repair, indicate the risk level and what command or action would be needed.' : 'Focus on diagnosis and recommendations only.'}`
 
-    // Start mission
+    // Start mission — skip review since the user already clicked "Diagnose"
+    // intentionally. Without skipReview the mission would be queued for the
+    // ConfirmMissionPromptDialog, but the hook immediately transitions to
+    // 'diagnosing' phase expecting the mission to exist in state (#11434).
     const missionId = startMission({
       title: `${monitorType} Diagnosis`,
       description: `Diagnosing workload health issues for ${monitorType}`,
       type: 'troubleshoot',
+      skipReview: true,
       initialPrompt: diagnosePrompt,
       context })
 

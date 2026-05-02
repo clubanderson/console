@@ -64,11 +64,11 @@ export const EXPECTED_ERROR_PATTERNS = [
   /Notification permission/i, // Firefox blocks notification requests outside user gestures
   /Notification prompting can only be done from a user gesture/i, // WebKit/Safari wording for notification gesture block
   /ERR_CONNECTION_REFUSED/i, // Backend/agent not running in CI
-  /net::ERR_/i, // Any network-level Chrome error in demo mode
+  /net::ERR_CONNECTION_REFUSED.*(:8585|:8080|localhost)/i, // Agent/backend ports only in demo mode (#11294)
   /Could not connect to [0-9.]+/i, // WebKit wording for connection refused (no net:: prefix)
-  /Connection refused/i, // Generic connection refused wording across browsers
+  /Connection refused.*(:8585|:8080|127\.0\.0\.1|localhost)/i, // Backend/agent connection only (#11294)
   /502.*Bad Gateway/i, // Reverse proxy errors when backend not running
-  /Failed to load resource/i, // Generic resource load failures in demo mode
+  /Failed to load resource.*(:8585|:8080|\/api\/)/i, // Backend API resource failures only (#11294)
   // SQLite WASM cache worker — webkit/Safari can't streaming-compile the
   // sqlite3 wasm, and the worker has a documented IndexedDB fallback path
   // (see lib/cache/worker.ts). These errors emit from the sqlite-wasm loader
@@ -217,6 +217,85 @@ export async function mockApiFallback(page: Page) {
   // returns null and fullFetchClusters() falls through to the demo-data
   // fallback path. A 200 with { clusters: [] } is truthy and short-circuits
   // the demo fallback, leaving stats/sublabels empty (#compute-deep failures).
+  await page.route('http://127.0.0.1:8585/**', (route) =>
+    route.fulfill({
+      status: 503,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'Service unavailable (test mock)' }),
+    })
+  )
+}
+
+/**
+ * Strict variant of mockApiFallback for suites that must detect missing endpoint mocks.
+ *
+ * #11295 — The permissive mockApiFallback returns HTTP 200/{} for any unmocked
+ * /api/** endpoint. This silently passes tests when components receive {} instead
+ * of the expected array/object shape, masking missing mocks.
+ *
+ * mockApiFallbackStrict returns HTTP 404 for unmocked endpoints instead.
+ * Components that handle errors gracefully will show error state (correct behaviour
+ * in test); components that don't guard against error responses will surface
+ * crashes — which is the intent.
+ *
+ * Use for: smoke.spec.ts, fullstack-smoke.spec.ts, route-coverage.spec.ts,
+ * console-error-scan tests. These suites benefit from strict mock coverage.
+ *
+ * Keep using mockApiFallback for: visual regression, perf, and tests that
+ * intentionally exercise degraded states.
+ *
+ * Register BEFORE specific mocks (Playwright matches in reverse order).
+ */
+export async function mockApiFallbackStrict(page: Page) {
+  // Register /health, active-users, dashboards, and kc-agent mocks identically
+  // to mockApiFallback so the app shell loads correctly.
+  await page.route('**/health', (route) => {
+    const url = new URL(route.request().url())
+    if (url.pathname !== '/health') return route.fallback()
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        status: 'ok',
+        version: 'dev',
+        oauth_configured: false,
+        in_cluster: false,
+        no_local_agent: true,
+        install_method: 'dev',
+      }),
+    })
+  })
+
+  // Catch-all: return 404 for unmocked endpoints. 404 is a real HTTP error
+  // that components should handle — it surfaces missing mocks as test failures
+  // rather than silent empty-state renders.
+  await page.route('**/api/**', (route) => {
+    const url = route.request().url()
+    // eslint-disable-next-line no-console
+    console.error(`[mockApiFallbackStrict] Unmocked API call (returning 404): ${url}`)
+    route.fulfill({
+      status: 404,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: `No mock registered for ${url}` }),
+    })
+  })
+
+  await page.route('**/api/active-users*', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ activeUsers: 1, totalConnections: 1 }),
+    })
+  )
+
+  await page.route('**/api/dashboards*', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([]),
+    })
+  )
+
   await page.route('http://127.0.0.1:8585/**', (route) =>
     route.fulfill({
       status: 503,

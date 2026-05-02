@@ -1,9 +1,9 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, Layout, RotateCcw, Download, Undo2, Redo2, Palette } from 'lucide-react'
 import { useModalState } from '../../lib/modals'
 import { useMissions } from '../../hooks/useMissions'
-import { useMobile } from '../../hooks/useMobile'
+import { useMobile, useIsTablet } from '../../hooks/useMobile'
 import { useFeatureHints } from '../../hooks/useFeatureHints'
 import { ResetMode } from '../../hooks/useDashboardReset'
 import { ResetDialog } from './ResetDialog'
@@ -69,6 +69,7 @@ export function FloatingDashboardActions({
   const { t } = useTranslation()
   const { isSidebarOpen, isSidebarMinimized, isFullScreen: isMissionFullScreen } = useMissions()
   const { isMobile } = useMobile()
+  const isTablet = useIsTablet()
   const fabHint = useFeatureHints('fab-add')
   const menu = useModalState()
   const resetDialog = useModalState()
@@ -112,14 +113,24 @@ export function FloatingDashboardActions({
 
   const getPositionClasses = () => {
     if (isMobile) return 'left-4 bottom-4'
+    // On tablet (768-1023px) the sidebar renders as an overlay and does not
+    // push content, so always use default right positioning (#11505).
+    if (isTablet) return 'right-16 bottom-20'
     // right-16 (64px) keeps the 40px FAB fully visible regardless of
     // macOS "always-show scrollbars" preference, browser zoom, or any
     // future scrollbar-gutter changes (#8551 follow-up).
     if (!isSidebarOpen) return 'right-16 bottom-20'
     if (isSidebarMinimized) return 'right-[104px] bottom-20'
-    return 'right-[568px] bottom-20'
+    // When expanded, position dynamically using the CSS var so the FAB
+    // tracks the actual resizable sidebar width (#11455).
+    return 'bottom-20'
   }
   const positionClasses = getPositionClasses()
+
+  // Dynamic right offset when mission sidebar is expanded (non-minimized)
+  const fabStyle: CSSProperties = (!isMobile && isSidebarOpen && !isSidebarMinimized)
+    ? { right: 'calc(var(--mission-sidebar-width, 480px) + 88px)' }
+    : {}
 
   const handleReset = (mode: ResetMode) => {
     resetDialog.close()
@@ -144,7 +155,7 @@ export function FloatingDashboardActions({
   if (isUnifiedMode) {
     const showActions = canUndo || canRedo || showResetOption
     return (
-      <div className={`fixed ${positionClasses} z-sticky flex ${isMobile ? 'items-start' : 'items-end'} gap-1.5 transition-all duration-300`}>
+      <div className={`fixed ${positionClasses} z-sticky flex ${isMobile ? 'items-start' : 'items-end'} gap-1.5 transition-all duration-300`} style={fabStyle}>
         {showActions && (
           <div className="flex gap-1 p-1 bg-card border border-border rounded-lg shadow-md animate-in fade-in duration-150 mr-1">
             <button
@@ -196,7 +207,7 @@ export function FloatingDashboardActions({
   // =========================================================================
   return (
     <>
-      <div ref={menuRef} className={`fixed ${positionClasses} z-sticky flex flex-col ${isMobile ? 'items-start' : 'items-end'} gap-1.5 transition-all duration-300`}>
+      <div ref={menuRef} className={`fixed ${positionClasses} z-sticky flex flex-col ${isMobile ? 'items-start' : 'items-end'} gap-1.5 transition-all duration-300`} style={fabStyle}>
         {menu.isOpen && (
           <div
             role="menu"

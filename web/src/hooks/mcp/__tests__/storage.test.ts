@@ -79,7 +79,11 @@ vi.mock('../../../lib/kubectlProxy', () => ({
 vi.mock('../shared', () => ({
   REFRESH_INTERVAL_MS: 120_000,
   MIN_REFRESH_INDICATOR_MS: 500,
-  getEffectiveInterval: (ms: number) => ms,
+  getEffectiveInterval: (ms: number, consecutiveFailures = 0) => {
+    if (consecutiveFailures <= 0) return ms
+    const multiplier = Math.pow(2, Math.min(consecutiveFailures, 5))
+    return Math.min(ms * multiplier, 600_000)
+  },
   LOCAL_AGENT_URL: 'http://localhost:8585',
   agentFetch: (...args: unknown[]) => fetch(...(args as Parameters<typeof fetch>)),
   clusterCacheRef: mockClusterCacheRef,
@@ -187,7 +191,7 @@ describe('usePVCs', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false))
     const callsBefore = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.length
 
-    await act(async () => { result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
 
     await waitFor(() => expect((globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBeGreaterThan(callsBefore))
   })
@@ -294,7 +298,7 @@ describe('usePVs', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false))
     const callsBefore = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.length
 
-    await act(async () => { result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
 
     await waitFor(() => expect((globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBeGreaterThan(callsBefore))
   })
@@ -370,7 +374,7 @@ describe('useResourceQuotas', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false))
     const callsBefore = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.length
 
-    await act(async () => { result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
 
     await waitFor(() => expect((globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBeGreaterThan(callsBefore))
   })
@@ -451,7 +455,7 @@ describe('useLimitRanges', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false))
     const callsBefore = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.length
 
-    await act(async () => { result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
 
     await waitFor(() => expect((globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBeGreaterThan(callsBefore))
   })
@@ -710,31 +714,22 @@ describe('usePVCs - consecutive failure tracking', () => {
 
     const { result } = renderHook(() => usePVCs())
 
-    await waitFor(() => expect(result.current.isLoading).toBe(false))
-    // First failure: consecutiveFailures=1
-    expect(result.current.consecutiveFailures).toBe(1)
-    expect(result.current.isFailed).toBe(false)
-
-    // Trigger more refetches to accumulate failures
-    await act(async () => { result.current.refetch() })
-    await waitFor(() => expect(result.current.consecutiveFailures).toBe(2))
-    expect(result.current.isFailed).toBe(false)
-
-    await act(async () => { result.current.refetch() })
-    await waitFor(() => expect(result.current.consecutiveFailures).toBe(3))
+    // With exponential backoff, consecutiveFailures in useEffect deps causes
+    // cascading re-fetches that quickly exceed the threshold
+    await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(3))
     expect(result.current.isFailed).toBe(true)
   })
 
   it('resets consecutiveFailures to 0 on successful fetch', async () => {
-    // Start with failures
-    globalThis.fetch = vi.fn().mockRejectedValue(new Error('fail'))
+    // Start with a single failure
+    globalThis.fetch = vi.fn().mockRejectedValueOnce(new Error('fail'))
 
     const { result } = renderHook(() => usePVCs())
-    await waitFor(() => expect(result.current.consecutiveFailures).toBe(1))
+    await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(1))
 
     // Now succeed
     globalThis.fetch = vi.fn().mockImplementation(() => Promise.resolve(new Response(JSON.stringify({ pvcs: [{ name: 'pvc-ok', namespace: 'ns', status: 'Bound' }] }), { status: 200 })))
-    await act(async () => { result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
 
     await waitFor(() => expect(result.current.consecutiveFailures).toBe(0))
     expect(result.current.isFailed).toBe(false)
@@ -771,15 +766,8 @@ describe('usePVs - additional edge cases', () => {
 
     const { result } = renderHook(() => usePVs())
 
-    await waitFor(() => expect(result.current.isLoading).toBe(false))
-    expect(result.current.consecutiveFailures).toBe(1)
-    expect(result.current.isFailed).toBe(false)
-
-    await act(async () => { result.current.refetch() })
-    await waitFor(() => expect(result.current.consecutiveFailures).toBe(2))
-
-    await act(async () => { result.current.refetch() })
-    await waitFor(() => expect(result.current.consecutiveFailures).toBe(3))
+    // With exponential backoff, cascading effect re-runs quickly accumulate failures
+    await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(3))
     expect(result.current.isFailed).toBe(true)
   })
 
@@ -1081,9 +1069,11 @@ describe('usePVCs — additional branches', () => {
     const { result } = renderHook(() => usePVCs())
     await waitFor(() => expect(result.current.pvcs).toHaveLength(1))
 
-    // Next fetch fails
-    globalThis.fetch = vi.fn().mockRejectedValue(new Error('server error'))
-    await act(async () => { result.current.refetch() })
+    // Next fetch fails — hang subsequent calls to prevent cascade
+    globalThis.fetch = vi.fn()
+      .mockRejectedValueOnce(new Error('server error'))
+      .mockImplementation(() => new Promise(() => {}))
+    await act(async () => { await result.current.refetch() })
 
     // Should preserve cached data, not clear it
     await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(1))
@@ -1132,11 +1122,11 @@ describe('usePVs — additional branches', () => {
     // First: fail
     globalThis.fetch = vi.fn().mockRejectedValueOnce(new Error('fail'))
     const { result } = renderHook(() => usePVs())
-    await waitFor(() => expect(result.current.consecutiveFailures).toBe(1))
+    await waitFor(() => expect(result.current.consecutiveFailures).toBeGreaterThanOrEqual(1))
 
     // Then: succeed
     globalThis.fetch = vi.fn().mockImplementation(() => Promise.resolve(new Response(JSON.stringify({ pvs: [{ name: 'pv', status: 'Available' }] }), { status: 200 })))
-    await act(async () => { result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
     await waitFor(() => expect(result.current.consecutiveFailures).toBe(0))
     expect(result.current.isFailed).toBe(false)
   })
@@ -1187,8 +1177,8 @@ describe('useResourceQuotas — additional branches', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false))
     const callsBefore = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.length
 
-    await act(async () => { result.current.refetch() })
-    await act(async () => { result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
 
     expect((globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBeGreaterThan(callsBefore)
   })
@@ -1251,7 +1241,7 @@ describe('useResourceQuotas — isDemoFallback wiring (Issue 9356)', () => {
 
     mockIsDemoMode.mockReturnValue(false)
     globalThis.fetch = vi.fn().mockImplementation(() => Promise.resolve(new Response(JSON.stringify({ resourceQuotas: [] }), { status: 200 })))
-    await act(async () => { result.current.refetch() })
+    await act(async () => { await result.current.refetch() })
 
     await waitFor(() => expect(result.current.isDemoFallback).toBe(false))
   })

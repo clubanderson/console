@@ -478,6 +478,15 @@ layer(base);
 
 /* Enhanced scrollbar for panels, sidebars, and dropdowns —
    slim and subtle, only visible on hover/scroll */
+.scroll-enhanced {
+  /* scrollbar-gutter: stable is only applied in browsers that support it
+     (Chrome 94+, Edge 94+, Firefox 97+). Classic-scrollbar environments
+     (Windows, most Linux distros) without the property don't reserve space,
+     preventing the unwanted ~15-17px permanent right-padding. */
+  @supports (scrollbar-gutter: stable) {
+    scrollbar-gutter: stable;
+  }
+}
 .scroll-enhanced::-webkit-scrollbar {
   width: 6px;
 }
@@ -588,6 +597,15 @@ layer(base);
 .animate-spin-slow,
 .animate-spin-slower {
   backface-visibility: hidden;
+}
+
+/* Main content margin transition: smooth during normal sidebar open/close,
+   disabled during active resize so cards reflow immediately (#11454, #11458). */
+[data-transition-margin] {
+  transition: margin 300ms ease;
+}
+html[data-mission-resizing] [data-transition-margin] {
+  transition: none;
 }
 
 /* Smooth value transitions */

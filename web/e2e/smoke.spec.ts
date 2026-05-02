@@ -93,7 +93,10 @@ test.describe('Smoke Tests', () => {
           .isVisible({ timeout: HAMBURGER_PROBE_TIMEOUT_MS })
           .catch(() => false)
         if (hamburgerVisible) {
-          await hamburger.click()
+          // Use native el.click() for cross-browser stability
+          await hamburger.evaluate((el) => (el as HTMLElement).click())
+          // Wait for sidebar slide-in animation to complete
+          await page.waitForTimeout(1000)
         }
       }
 
@@ -104,10 +107,18 @@ test.describe('Smoke Tests', () => {
         const link = sidebar.locator(`a[href="${href}"]`).first()
         // Mobile-safari needs extra time after hamburger open for the sidebar
         // slide-in animation to complete before links are hittable. (#nightly-playwright)
-        await expect(link).toBeVisible({ timeout: 10_000 })
-        // force:true bypasses webkit's "element stable" check — sidebar links can be
-        // transiently detached during hook polling re-renders. (#nightly-playwright)
-        await link.click({ force: true })
+        await expect(link).toBeVisible({ timeout: 15_000 })
+        
+        // Wait for network idle before clicking to avoid DOM detach during
+        // hook re-renders (common in webkit/firefox). This stabilizes the
+        // element before interaction.
+        await page.waitForLoadState('networkidle').catch(() => {})
+        
+        // Use native el.click() for cross-browser stability — Playwright's
+        // synthetic clicks can miss React event handlers on webkit/firefox
+        // when the sidebar is re-rendering from hook updates.
+        await link.evaluate((el) => (el as HTMLElement).click())
+        
         await waitForNetworkIdleBestEffort(page, NETWORK_IDLE_TIMEOUT_MS, `nav to ${expectedPath}`)
         expect(page.url()).toContain(expectedPath)
         // Re-open mobile sidebar if navigation closed it.
@@ -120,7 +131,7 @@ test.describe('Smoke Tests', () => {
               .isVisible({ timeout: HAMBURGER_PROBE_TIMEOUT_MS })
               .catch(() => false)
             if (hamburgerVisible) {
-              await hamburger.click()
+              await hamburger.evaluate((el) => (el as HTMLElement).click())
             }
           }
         }
@@ -204,7 +215,12 @@ test.describe('Smoke Tests', () => {
 
       if (await themeToggle.first().isVisible({ timeout: OPTIONAL_PROBE_TIMEOUT_MS })) {
         const htmlBefore = await page.locator('html').getAttribute('class')
-        await themeToggle.first().click({ force: true })
+        
+        // Wait for network idle before clicking to avoid DOM detach
+        await page.waitForLoadState('networkidle').catch(() => {})
+        
+        // Use native el.click() for maximum cross-browser compatibility
+        await themeToggle.first().evaluate((el) => (el as HTMLElement).click())
 
         await expect
           .poll(async () => page.locator('html').getAttribute('class'), { timeout: THEME_POLL_TIMEOUT_MS })

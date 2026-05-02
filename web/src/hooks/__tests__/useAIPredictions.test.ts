@@ -1066,7 +1066,7 @@ describe('aiPredictionToRisk transformation', () => {
     const { result } = renderHook(() => useAIPredictions())
 
     await waitFor(() => {
-      expect(result.current.predictions.length).toBeGreaterThan(0)
+      expect(result.current.predictions.find(p => p.id === 'ns-test')).toBeDefined()
     })
 
     const pred = result.current.predictions.find(p => p.id === 'ns-test')
@@ -1097,7 +1097,7 @@ describe('aiPredictionToRisk transformation', () => {
     const { result } = renderHook(() => useAIPredictions())
 
     await waitFor(() => {
-      expect(result.current.predictions.length).toBeGreaterThan(0)
+      expect(result.current.predictions.find(p => p.id === 'trend-test')).toBeDefined()
     })
 
     const pred = result.current.predictions.find(p => p.id === 'trend-test')
@@ -1128,7 +1128,7 @@ describe('aiPredictionToRisk transformation', () => {
     const { result } = renderHook(() => useAIPredictions())
 
     await waitFor(() => {
-      expect(result.current.predictions.length).toBeGreaterThan(0)
+      expect(result.current.predictions.find(p => p.id === 'no-ns-test')).toBeDefined()
     })
 
     const pred = result.current.predictions.find(p => p.id === 'no-ns-test')

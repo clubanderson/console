@@ -491,7 +491,7 @@ type screenshotUploadResult struct {
 // upload, synchronous result counts, error). #9898: screenshot uploads are
 // decoupled from this path — callers launch uploadScreenshotCommentsAsync
 // on the returned slice from a background goroutine.
-func (h *FeedbackHandler) createGitHubIssueInRepo(ctx context.Context, request *models.FeatureRequest, user *models.User, repoOwner, repoName string, screenshots []string, consoleErrors []models.ConsoleError, clientAuth string) (int, string, []string, screenshotUploadResult, error) {
+func (h *FeedbackHandler) createGitHubIssueInRepo(ctx context.Context, request *models.FeatureRequest, user *models.User, repoOwner, repoName string, screenshots []string, consoleErrors []models.ConsoleError, failedApiCalls []models.FailedApiCall, diagnostics *models.DiagnosticInfo, clientAuth string) (int, string, []string, screenshotUploadResult, error) {
 	// Determine labels based on request type and target repo
 	var labels []string
 	isDocs := request.TargetRepo == models.TargetRepoDocs
@@ -570,6 +570,90 @@ func (h *FeedbackHandler) createGitHubIssueInRepo(ctx context.Context, request *
 		consoleErrorBlock = fmt.Sprintf("\n<details>\n<summary>Browser Console Errors (%d captured)</summary>\n\n%s\n</details>\n", len(consoleErrors), errLines.String())
 	}
 
+	diagnosticsBlock := ""
+	if diagnostics != nil {
+		var diag strings.Builder
+		diag.WriteString("\n<details>\n<summary>Diagnostics</summary>\n\n")
+		diag.WriteString("| Field | Value |\n|-------|-------|\n")
+		if diagnostics.AgentVersion != "" {
+			diag.WriteString(fmt.Sprintf("| Agent Version | %s |\n", diagnostics.AgentVersion))
+		}
+		if diagnostics.CommitSHA != "" {
+			diag.WriteString(fmt.Sprintf("| Commit SHA | `%s` |\n", diagnostics.CommitSHA))
+		}
+		if diagnostics.BuildTime != "" {
+			diag.WriteString(fmt.Sprintf("| Build Time | %s |\n", diagnostics.BuildTime))
+		}
+		if diagnostics.GoVersion != "" {
+			diag.WriteString(fmt.Sprintf("| Go Version | %s |\n", diagnostics.GoVersion))
+		}
+		if diagnostics.AgentOS != "" {
+			diag.WriteString(fmt.Sprintf("| Agent OS | %s |\n", diagnostics.AgentOS))
+		}
+		if diagnostics.AgentArch != "" {
+			diag.WriteString(fmt.Sprintf("| Agent Arch | %s |\n", diagnostics.AgentArch))
+		}
+		if diagnostics.InstallMethod != "" {
+			diag.WriteString(fmt.Sprintf("| Install Method | %s |\n", diagnostics.InstallMethod))
+		}
+		if diagnostics.Clusters > 0 {
+			diag.WriteString(fmt.Sprintf("| Clusters | %d |\n", diagnostics.Clusters))
+		}
+		if diagnostics.AgentConnectionStatus != "" {
+			diag.WriteString(fmt.Sprintf("| Agent Connection | %s |\n", diagnostics.AgentConnectionStatus))
+		}
+		if diagnostics.AgentConnectionFailures > 0 {
+			diag.WriteString(fmt.Sprintf("| Connection Failures | %d |\n", diagnostics.AgentConnectionFailures))
+		}
+		if diagnostics.AgentLastError != "" {
+			diag.WriteString(fmt.Sprintf("| Last Agent Error | %s |\n", diagnostics.AgentLastError))
+		}
+		if diagnostics.BrowserUA != "" {
+			diag.WriteString(fmt.Sprintf("| Browser UA | %s |\n", diagnostics.BrowserUA))
+		}
+		if diagnostics.BrowserPlatform != "" {
+			diag.WriteString(fmt.Sprintf("| Browser Platform | %s |\n", diagnostics.BrowserPlatform))
+		}
+		if diagnostics.BrowserLanguage != "" {
+			diag.WriteString(fmt.Sprintf("| Browser Language | %s |\n", diagnostics.BrowserLanguage))
+		}
+		if diagnostics.ScreenResolution != "" {
+			diag.WriteString(fmt.Sprintf("| Screen Resolution | %s |\n", diagnostics.ScreenResolution))
+		}
+		if diagnostics.WindowSize != "" {
+			diag.WriteString(fmt.Sprintf("| Window Size | %s |\n", diagnostics.WindowSize))
+		}
+		if diagnostics.PageURL != "" {
+			diag.WriteString(fmt.Sprintf("| Page URL | %s |\n", diagnostics.PageURL))
+		}
+		diag.WriteString("\n</details>\n")
+		diagnosticsBlock = diag.String()
+	}
+
+	failedApiBlock := ""
+	if len(failedApiCalls) > 0 {
+		var apiLines strings.Builder
+		const maxFailedApiCalls = 30
+		shown := len(failedApiCalls)
+		if shown > maxFailedApiCalls {
+			shown = maxFailedApiCalls
+		}
+		for _, call := range failedApiCalls[:shown] {
+			detail := ""
+			if call.Detail != "" {
+			// Escape backticks and strip newlines so the detail cannot break out of
+				// the inline code span or inject arbitrary markdown into the issue body.
+				safeDetail := strings.NewReplacer("`", "'", "\n", " ", "\r", "").Replace(call.Detail)
+				detail = fmt.Sprintf(": %s", safeDetail)
+			}
+			apiLines.WriteString(fmt.Sprintf("- `[%s]` **%s** `%s`%s\n", call.Timestamp, call.Status, call.Endpoint, detail))
+		}
+		if len(failedApiCalls) > maxFailedApiCalls {
+			apiLines.WriteString(fmt.Sprintf("\n_...and %d more omitted_\n", len(failedApiCalls)-maxFailedApiCalls))
+		}
+		failedApiBlock = fmt.Sprintf("\n<details>\n<summary>Failed API Calls (%d captured)</summary>\n\n%s\n</details>\n", len(failedApiCalls), apiLines.String())
+	}
+
 	issueBody := fmt.Sprintf(`## User Request
 
 **Type:** %s
@@ -580,10 +664,10 @@ func (h *FeedbackHandler) createGitHubIssueInRepo(ctx context.Context, request *
 ## Description
 
 %s
-%s%s
+%s%s%s%s
 ---
 *This issue was automatically created from the KubeStellar Console.*
-`, request.RequestType, repoLabel, user.GitHubLogin, request.ID.String(), request.Description, shaLine, consoleErrorBlock)
+`, request.RequestType, repoLabel, user.GitHubLogin, request.ID.String(), request.Description, shaLine, consoleErrorBlock, failedApiBlock, diagnosticsBlock)
 
 	// First attempt: create issue with labels
 	number, htmlURL, err := h.postGitHubIssue(ctx, repoOwner, repoName, request.Title, issueBody, labels, clientAuth)

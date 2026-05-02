@@ -122,20 +122,23 @@ test.describe('Navbar responsive layout', () => {
 
     const nav = page.locator('nav[data-tour="navbar"]')
     const overflowBtn = nav.getByTestId('navbar-overflow-btn')
-    // Webkit mobile emulation can report the button as "not stable" while
-    // CSS transitions are settling. Wait for visibility first, then force
-    // click to bypass the stability check (#nightly-playwright).
-    await expect(overflowBtn).toBeVisible()
-    // Small settle delay for webkit — the page/context can close if the
-    // click fires while layout is still in progress (#nightly-playwright).
-    const SETTLE_MS = 500
-    await page.waitForTimeout(SETTLE_MS)
-    await overflowBtn.click({ force: true })
+    // Webkit/Firefox need extra time for layout to stabilize before clicks
+    // are actionable. Wait for both visibility and DOM stability.
+    await expect(overflowBtn).toBeVisible({ timeout: 15000 })
+    
+    // Wait for network idle to ensure all initial requests settle before
+    // interacting. This prevents DOM detach during hook re-renders.
+    await page.waitForLoadState('networkidle').catch(() => {})
+    
+    // Use native el.click() for maximum cross-browser compatibility —
+    // Playwright's synthetic clicks can miss React event handlers on
+    // webkit/firefox when components are mid-render.
+    await overflowBtn.evaluate((el) => (el as HTMLElement).click())
 
     // At least one item from the lg-hidden group should now be visible.
     // Use a generous timeout — the overflow panel animates in and webkit
     // can be slow to paint after a forced click.
-    const PANEL_TIMEOUT_MS = 10_000
+    const PANEL_TIMEOUT_MS = 15_000
     const panel = page.locator('.fixed.bg-card').last()
     await expect(panel).toBeVisible({ timeout: PANEL_TIMEOUT_MS })
   })

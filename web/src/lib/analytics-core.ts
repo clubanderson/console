@@ -635,6 +635,10 @@ const COMPONENT_NAME_MAX_LEN = 60
 // short (TypeError, RangeError, etc.), so 40 chars is plenty.
 const ERROR_TYPE_MAX_LEN = 40
 
+// Maximum length for the HTTP endpoint dimension.  GA4 hard-truncates
+// string parameter values at 100 chars, so cap here to avoid silent loss.
+const HTTP_ENDPOINT_MAX_LEN = 100
+
 /** Fallback when no error type can be inferred from the message or Error.name */
 const ERROR_TYPE_UNKNOWN = 'Unknown'
 
@@ -825,6 +829,43 @@ export function _resetCapturedErrors() {
   capturedErrors.length = 0
 }
 
+// ── Failed API calls ring buffer (for feedback modal) ────────────────
+// Tracks recent 4xx/5xx API responses so the feedback modal can include
+// them in bug reports. Separate from the console error buffer because
+// these carry structured status/endpoint info rather than free-text.
+const API_ERROR_RING_BUFFER_SIZE = 30
+
+interface FailedApiCall {
+  timestamp: string
+  status: string
+  endpoint: string
+  detail?: string
+}
+
+const failedApiCalls: FailedApiCall[] = []
+
+export function pushFailedApiCall(status: number | string, endpoint: string, detail?: string) {
+  const entry: FailedApiCall = {
+    timestamp: new Date().toISOString(),
+    status: String(status),
+    endpoint: endpoint.slice(0, HTTP_ENDPOINT_MAX_LEN),
+    ...(detail && { detail: detail.slice(0, ERROR_DETAIL_MAX_LEN) }),
+  }
+  failedApiCalls.push(entry)
+  if (failedApiCalls.length > API_ERROR_RING_BUFFER_SIZE) {
+    failedApiCalls.shift()
+  }
+}
+
+export function getRecentFailedApiCalls(): FailedApiCall[] {
+  return [...failedApiCalls]
+}
+
+/** @internal — exported for test isolation only */
+export function _resetFailedApiCalls() {
+  failedApiCalls.length = 0
+}
+
 // ── Per-card / per-page error throttling (#10092) ──────────────────────
 // CI/CD cards poll every 30-120s. Without throttling, a single broken card
 // generates dozens of ksc_error events per session. We cap emissions to at
@@ -865,6 +906,7 @@ export function _resetAnalyticsState() {
   recentErrorEmissions.clear()
   pageErrorCounts.clear()
   capturedErrors.length = 0
+  failedApiCalls.length = 0
 }
 
 function isErrorThrottled(category: string, page: string, cardId?: string): boolean {
@@ -913,6 +955,31 @@ export function emitError(
     error_type: errorType,
     component_name: componentName,
     ...(cardId && { card_id: cardId }),
+  })
+}
+
+/**
+ * Emit a structured HTTP error event with status code and endpoint path.
+ * Called from api.get()/api.post() so every non-2xx response is tracked
+ * with enough context to diagnose without digging through error_detail.
+ */
+export function emitHttpError(
+  status: number | string,
+  endpoint: string,
+  detail?: string,
+) {
+  pushFailedApiCall(status, endpoint, detail)
+  // Strip query string to avoid GA4 cardinality explosion and PII leakage.
+  const endpointPath = endpoint.split('?')[0]
+  const page = window.location.pathname
+  // Throttle per (status, path, page) so different failing endpoints on the
+  // same page don't suppress each other.
+  if (isErrorThrottled(`http_${status}_${endpointPath}`, page)) return
+  send('ksc_http_error', {
+    http_status: String(status),
+    http_endpoint: endpointPath.slice(0, HTTP_ENDPOINT_MAX_LEN),
+    error_detail: (detail || `HTTP ${status}`).slice(0, ERROR_DETAIL_MAX_LEN),
+    error_page: page,
   })
 }
 
@@ -1112,18 +1179,18 @@ export function startGlobalErrorTracking() {
       // these as ksc_error creates false-positive alert spikes (#9994).
       if (errorName === 'UnauthenticatedError' || errorName === 'UnauthorizedError') {
         pushCapturedError('error', msg, 'auth_error')
-        send('ksc_http_error', { http_status: 'auth', error_detail: msg.slice(0, ERROR_DETAIL_MAX_LEN), error_page: window.location.pathname })
+        send('ksc_http_error', { http_status: 'auth', http_endpoint: 'global', error_detail: msg.slice(0, ERROR_DETAIL_MAX_LEN), error_page: window.location.pathname })
         return
       }
       if (msg.includes('No authentication token') || msg.includes('Token is invalid or expired')) {
         pushCapturedError('error', msg, 'auth_error')
-        send('ksc_http_error', { http_status: 'auth', error_detail: msg.slice(0, ERROR_DETAIL_MAX_LEN), error_page: window.location.pathname })
+        send('ksc_http_error', { http_status: 'auth', http_endpoint: 'global', error_detail: msg.slice(0, ERROR_DETAIL_MAX_LEN), error_page: window.location.pathname })
         return
       }
       if (/\b50[234]\b/.test(msg) && (msg.includes('fetch') || msg.includes('Fetch') || msg.includes('upstream'))) {
         const statusMatch = msg.match(/\b(50[234])\b/)
         pushCapturedError('error', msg, `http_${statusMatch?.[1] ?? '5xx'}`)
-        send('ksc_http_error', { http_status: statusMatch?.[1] ?? '5xx', error_detail: msg.slice(0, ERROR_DETAIL_MAX_LEN), error_page: window.location.pathname })
+        send('ksc_http_error', { http_status: statusMatch?.[1] ?? '5xx', http_endpoint: 'global', error_detail: msg.slice(0, ERROR_DETAIL_MAX_LEN), error_page: window.location.pathname })
         return
       }
       pushCapturedError('error', msg, 'unhandled_rejection')
@@ -1182,12 +1249,12 @@ export function startGlobalErrorTracking() {
       if (tryChunkReloadRecovery(event.message)) return
       if (event.error?.name === 'UnauthenticatedError' || event.error?.name === 'UnauthorizedError') {
         pushCapturedError('error', event.message, 'auth_error')
-        send('ksc_http_error', { http_status: 'auth', error_detail: event.message.slice(0, ERROR_DETAIL_MAX_LEN), error_page: window.location.pathname })
+        send('ksc_http_error', { http_status: 'auth', http_endpoint: 'global', error_detail: event.message.slice(0, ERROR_DETAIL_MAX_LEN), error_page: window.location.pathname })
         return
       }
       if (event.message.includes('No authentication token') || event.message.includes('Token is invalid or expired')) {
         pushCapturedError('error', event.message, 'auth_error')
-        send('ksc_http_error', { http_status: 'auth', error_detail: event.message.slice(0, ERROR_DETAIL_MAX_LEN), error_page: window.location.pathname })
+        send('ksc_http_error', { http_status: 'auth', http_endpoint: 'global', error_detail: event.message.slice(0, ERROR_DETAIL_MAX_LEN), error_page: window.location.pathname })
         return
       }
       pushCapturedError('error', event.message, 'runtime')

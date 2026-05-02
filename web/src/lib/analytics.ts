@@ -23,9 +23,12 @@ export {
   emitUserEngagement,
   startGlobalErrorTracking,
   emitError,
+  emitHttpError,
   emitChunkReloadRecoveryFailed,
   markErrorReported,
   captureUtmParams,
+  getRecentBrowserErrors,
+  getRecentFailedApiCalls,
 } from './analytics-core'
 export type { EmitErrorExtra } from './analytics-core'
 

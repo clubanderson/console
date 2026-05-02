@@ -24,6 +24,11 @@
     "cancel": "Cancel",
     "close": "Close",
     "clear": "Clear",
+    "clearAll": "Clear All",
+    "deleteSelected": "Delete Selected",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "selectItem": "Select {{title}}",
     "refresh": "Refresh",
     "configure": "Configure",
     "replace": "Replace",
@@ -45,7 +50,8 @@
     "dismiss": "Dismiss",
     "viewNamespaceCostAria": "View cost details for namespace {{namespace}}",
     "viewOperatorAria": "View operator {{name}}",
-    "toggleGPUNodeAria": "Toggle details for GPU node {{node}}"
+    "toggleGPUNodeAria": "Toggle details for GPU node {{node}}",
+    "selectItem": "Select {{title}}"
   },
   "buttons": {
     "addCard": "Add Card",
@@ -71,7 +77,8 @@
     "offline": "Offline",
     "warning": "Warning",
     "critical": "Critical",
-    "swappingTo": "Swapping to \"{{cardName}}\" in 30s"
+    "swappingTo": "Swapping to \"{{cardName}}\" in 30s",
+    "noClusters": "No clusters available"
   },
   "time": {
     "justNow": "just now",
@@ -93,8 +100,16 @@
     "snoozedCards": "Snoozed Cards",
     "noSnoozedCards": "No snoozed card swaps",
     "snoozeExpires": "Expires {{time}}",
-    "addMore": "Add more...",
+    "addMore": "Add dashboard cards…",
     "removeFromSidebar": "Remove from sidebar",
+    "cardCount_one": "{{count}} card on this dashboard",
+    "cardCount_other": "{{count}} cards on this dashboard",
+    "healthyClusters_one": "{{count}} cluster reporting healthy status",
+    "healthyClusters_other": "{{count}} clusters reporting healthy status",
+    "unhealthyClusters_one": "{{count}} cluster reporting issues",
+    "unhealthyClusters_other": "{{count}} clusters reporting issues",
+    "unreachableClusters_one": "{{count}} cluster currently unreachable",
+    "unreachableClusters_other": "{{count}} clusters currently unreachable",
     "doubleClickRename": "Double-click to rename",
     "snoozedItems": "Snoozed Items",
     "noSnoozedItems": "No snoozed items",
@@ -1942,7 +1957,8 @@
     "viewHistory": "View {{count}} previous missions",
     "viewHistory_one": "View {{count}} previous mission",
     "viewHistory_other": "View {{count}} previous missions",
-    "missionHistory": "Mission History"
+    "missionHistory": "Mission History",
+    "headerActions": "Mission sidebar actions"
   },
   "feedback": {
     "share": "Share",
@@ -3705,7 +3721,7 @@
       "noResultsFor": "No results for \"{{query}}\"",
       "askAIInstead": "Ask AI instead",
       "startMission": "Start a mission: \"{{query}}\"",
-      "searchPlaceholder": "Search or ask AI anything...",
+      "searchPlaceholder": "Search cards, clusters, dashboards…  (or /ai to ask AI)",
       "tokenUsageTitle": "Token usage: {{percentage}}%{{suffix}}",
       "tokenUsage": "Token Usage",
       "demoData": "Demo Data",
@@ -3777,7 +3793,8 @@
       "autoRefreshTitle": "Auto-refresh every 30s",
       "auto": "Auto",
       "clickToRetry": "Click to retry",
-      "updated": "Updated {{time}}"
+      "updated": "Updated {{time}}",
+      "toolbarLabel": "Dashboard toolbar"
     },
     "issueItem": {
       "issues": "Issues",

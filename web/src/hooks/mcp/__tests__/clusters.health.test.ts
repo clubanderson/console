@@ -608,8 +608,11 @@ describe('useMCPStatus — additional branches', () => {
     await act(async () => { await Promise.resolve() })
     expect(result.current.status).toEqual(initialStatus)
 
-    // Subsequent poll errors
-    mockAgentFetch.mockRejectedValue(new Error('Network error'))
+    // Subsequent poll error — hang after first rejection to prevent cascade
+    // from consecutiveFailures in useEffect deps
+    mockAgentFetch
+      .mockRejectedValueOnce(new Error('Network error'))
+      .mockImplementation(() => new Promise(() => {}))
     await act(async () => { vi.advanceTimersByTime(REFRESH_INTERVAL_MS) })
     await act(async () => { await Promise.resolve() })
     expect(result.current.error).toBe('MCP bridge not available')
@@ -620,18 +623,21 @@ describe('useMCPStatus — additional branches', () => {
   it('clears error when fetch succeeds after failure', async () => {
     // Use fake timers BEFORE rendering so subscribePolling creates fake intervals
     vi.useFakeTimers()
-    mockAgentFetch.mockRejectedValueOnce(new Error('err'))
+    // First call fails, subsequent hang to prevent cascade
+    mockAgentFetch
+      .mockRejectedValueOnce(new Error('err'))
+      .mockImplementation(() => new Promise(() => {}))
     const { result } = renderHook(() => useMCPStatus())
     await act(async () => { await Promise.resolve() })
     expect(result.current.error).toBe('MCP bridge not available')
 
-    // Now succeed
+    // Now succeed — replace mock with success response
     const good: MCPStatus = {
       opsClient: { available: true, toolCount: 1 },
       deployClient: { available: false, toolCount: 0 },
     }
     mockAgentFetch.mockImplementation(() => Promise.resolve(new Response(JSON.stringify(good), { status: 200 })))
-    await act(async () => { vi.advanceTimersByTime(REFRESH_INTERVAL_MS) })
+    await act(async () => { vi.advanceTimersByTime(REFRESH_INTERVAL_MS * 4) })
     await act(async () => { await Promise.resolve() })
     expect(result.current.error).toBeNull()
     expect(result.current.status).toEqual(good)

@@ -182,6 +182,9 @@ export function MissionSidebar() {
       resizeCleanupRef.current = null
       // Persist final width using ref to avoid state-updater side effects
       try { localStorage.setItem(SIDEBAR_WIDTH_KEY, String(latestWidthRef.current)) } catch { /* ignore */ }
+      // Notify child components (charts, resize observers) to recalculate
+      // their layout after the panel resize completes (#11458).
+      window.dispatchEvent(new Event('resize'))
     }
 
     document.body.style.cursor = 'col-resize'
@@ -754,7 +757,7 @@ export function MissionSidebar() {
           )}
         </div>
         {/* Toolbar and window controls — split so close/minimize never overflow */}
-        <div className="flex items-center gap-1 min-w-0">
+        <div className="flex items-center gap-1.5 min-w-0" role="toolbar" aria-label={t('missionSidebar.headerActions', { defaultValue: 'Mission panel actions' })}>
           {/* + button with dropdown — outside overflow-hidden so the dropdown isn't clipped */}
           <div className="relative mr-1 shrink-0" ref={addMenuRef}>
             <button
@@ -848,34 +851,38 @@ export function MissionSidebar() {
               <button
                 onClick={() => setFullScreen(false)}
                 className="p-1 rounded transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+                aria-label={t('missionSidebar.exitFullScreen')}
                 title={t('missionSidebar.exitFullScreen')}
               >
-                <Minimize2 className="w-5 h-5 text-muted-foreground" />
+                <Minimize2 className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
               </button>
             ) : (
               <>
                 <button
                   onClick={() => setFullScreen(true)}
                   className="p-1 rounded transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+                  aria-label={t('missionSidebar.fullScreen')}
                   title={t('missionSidebar.fullScreen')}
                 >
-                  <Maximize2 className="w-5 h-5 text-muted-foreground" />
+                  <Maximize2 className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
                 </button>
                 <button
                   onClick={minimizeSidebar}
                   className="p-1 rounded transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+                  aria-label={t('missionSidebar.minimizeSidebar')}
                   title={t('missionSidebar.minimizeSidebar')}
                 >
-                  <PanelRightClose className="w-5 h-5 text-muted-foreground" />
+                  <PanelRightClose className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
                 </button>
               </>
             ))}
             <button
               onClick={closeSidebar}
               className="min-w-[44px] min-h-[44px] p-2 rounded transition-colors hover:bg-black/5 dark:hover:bg-white/10 flex items-center justify-center"
+              aria-label={t('missionSidebar.closeSidebar')}
               title={t('missionSidebar.closeSidebar')}
             >
-              <X className="w-5 h-5 text-muted-foreground" />
+              <X className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
             </button>
           </div>
         </div>
