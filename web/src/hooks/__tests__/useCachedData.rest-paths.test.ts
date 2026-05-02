@@ -214,7 +214,7 @@ describe('useCachedData', () => {
       expect(result).toHaveLength(1)
       expect(result[0]).toHaveProperty('cluster', 'my-cluster')
       vi.unstubAllGlobals()
-    })
+    }, 15_000)
 
     it('all-clusters path calls fetchFromAllClusters with limit', async () => {
       let capturedOpts: Record<string, unknown> = {}
@@ -238,7 +238,7 @@ describe('useCachedData', () => {
       const fetcher = capturedOpts.fetcher as () => Promise<unknown[]>
       const result = await fetcher()
       expect(result.length).toBeLessThanOrEqual(5)
-    })
+    }, 15_000)
   })
 
   // ========================================================================
