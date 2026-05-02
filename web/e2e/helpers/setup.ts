@@ -69,6 +69,9 @@ export const EXPECTED_ERROR_PATTERNS = [
   /Connection refused/i, // Generic connection refused wording across browsers
   /502.*Bad Gateway/i, // Reverse proxy errors when backend not running
   /Failed to load resource/i, // Generic resource load failures in demo mode
+  /the server responded with a status of [45]\d\d/i, // WebKit/Chrome may report status without "Failed to load resource:" prefix (#11393)
+  /Service Unavailable/i, // 503 status text surfaced by WebKit when kc-agent mock returns 503
+  /Not Found/i, // 404 status text from preview server for unmocked paths (Web Worker requests bypass page.route)
   // SQLite WASM cache worker — webkit/Safari can't streaming-compile the
   // sqlite3 wasm, and the worker has a documented IndexedDB fallback path
   // (see lib/cache/worker.ts). These errors emit from the sqlite-wasm loader
