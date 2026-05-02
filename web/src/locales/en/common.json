@@ -1627,7 +1627,11 @@
       "critical": "Critical",
       "warning": "Warning",
       "info": "Info"
-    }
+    },
+    "activeAlerts": "Active Alerts",
+    "noActive": "No active alerts",
+    "activeCount_one": "{{count}} active alert",
+    "activeCount_other": "{{count}} active alerts"
   },
   "rbac": {
     "permissionChecker": "Permission Checker",

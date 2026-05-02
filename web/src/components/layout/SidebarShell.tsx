@@ -140,7 +140,7 @@ const HREF_TO_DASHBOARD_ID: Record<string, string> = {
   '/clusters': 'clusters', '/compliance': 'compliance', '/cost': 'cost',
   '/gpu-reservations': 'gpu', '/nodes': 'nodes', '/deployments': 'deployments',
   '/pods': 'pods', '/services': 'services', '/helm': 'helm',
-  '/alerts': 'alerts', '/ai-ml': 'ai-ml', '/ci-cd': 'ci-cd',
+  '/ai-ml': 'ai-ml', '/ci-cd': 'ci-cd',
   '/logs': 'logs', '/data-compliance': 'data-compliance', '/arcade': 'arcade',
   '/deploy': 'deploy', '/ai-agents': 'ai-agents',
   '/llm-d-benchmarks': 'llm-d-benchmarks', '/cluster-admin': 'cluster-admin',
@@ -699,7 +699,7 @@ export function SidebarShell({
 
         {/* Viewer count + commit hash */}
         {features.activeUsers && !isCollapsed && (
-          <div className="mt-auto pt-4 flex flex-col items-center gap-1">
+          <div className="mt-auto pt-4 border-t border-border/30 flex flex-col items-center gap-1">
             <div className="flex items-center justify-center gap-2">
               <div
                 className="flex items-center gap-1 px-2 text-muted-foreground/60"
@@ -711,7 +711,7 @@ export function SidebarShell({
                 </span>
               </div>
               <span className="text-2xs text-muted-foreground/40 font-mono" title={`Commit: ${__COMMIT_HASH__}`}>
-                {__COMMIT_HASH__.substring(0, 7)}
+                #{__COMMIT_HASH__.substring(0, 7)}
               </span>
             </div>
             {/* Developer mode: warn when running an older commit, or show upgrade progress */}

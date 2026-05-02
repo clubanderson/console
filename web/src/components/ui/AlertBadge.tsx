@@ -242,8 +242,8 @@ export function AlertBadge() {
         className={`relative p-2 w-9 h-9 ${
           stats.critical > 0 ? 'text-red-400' : stats.warning > 0 ? 'text-orange-400' : ''
         }`}
-        title={stats.firing > 0 ? `${stats.firing} active alerts` : 'No active alerts'}
-        aria-label={stats.firing > 0 ? `${stats.firing} active alerts` : 'No active alerts'}
+        title={stats.firing > 0 ? t('alerts.activeCount', { count: stats.firing }) : t('alerts.noActive')}
+        aria-label={stats.firing > 0 ? t('alerts.activeCount', { count: stats.firing }) : t('alerts.noActive')}
       >
         <Bell className="w-5 h-5" />
         {stats.firing > 0 && (
@@ -269,7 +269,7 @@ export function AlertBadge() {
           <div
             ref={dropdownRef}
             role="dialog"
-            aria-label="Active Alerts"
+            aria-label={t('alerts.activeAlerts')}
             aria-modal={isMobile}
             className={`${
               isMobile
@@ -291,7 +291,7 @@ export function AlertBadge() {
                 ) : (
                   <CheckCircle className="w-4 h-4 text-green-400" />
                 )}
-                <span className="font-medium text-foreground">Active Alerts</span>
+                <span className="font-medium text-foreground">{t('alerts.activeAlerts')}</span>
                 {stats.firing > 0 && (
                   <span className="px-1.5 py-0.5 text-xs rounded bg-secondary text-muted-foreground">
                     {stats.firing}
