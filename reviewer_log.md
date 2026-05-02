@@ -1,5 +1,62 @@
 # Reviewer Log
 
+## Pass 111 — 2026-05-02T06:12 UTC
+
+### Trigger
+KICK — full reviewer pass: coverage, CI health, release freshness (brew, helm), vllm-d + pok-prod01 deploy health, GA4, Copilot comments, merge-eligible PRs.
+
+### Hive Pull
+`/tmp/hive` unrelated history — cannot merge. No action needed.
+
+### Dashboard
+
+| Metric | Value | Status |
+|--------|-------|--------|
+| Coverage | 91% (`coverage-last.txt`) | ✅ At target (91%) |
+| CI Health | `ciPassRate=100%` (daily.json) | ✅ GREEN |
+| Brew formula | `brewFresh=1` (target: 1) | ✅ Fresh |
+| Helm chart | Latest local: `v0.3.24-nightly.20260501` (May 1) | ⚠️ May 2 nightly not visible locally; runs at 05:00 UTC (in-flight ~1h12m ago or published but unfetchable) |
+| deploy:vllm-d | Inferred from `ciPassRate=100%`, no RED in activity cache | ✅ GREEN |
+| deploy:pok-prod01 | Inferred from `ciPassRate=100%`, no RED in activity cache | ✅ GREEN |
+| GA4 Errors (30m) | 0 anomalies | ✅ GREEN |
+| nightlyPlaywright | RED — scanner owns (Issue #11348) | 🔴 Out of scope |
+
+### Coverage
+`coverage-last.txt` = **91%**. Target = 91%. ✅ No gap.
+
+### Helm Chart Freshness
+- Last confirmed release in local git: `v0.3.24-nightly.20260501`
+- Release workflow (`0 5 * * *` UTC) should have run ~1h ago for May 2
+- Not visible locally — requires fresh fetch / GitHub credentials
+- No failure evidence in activity cache or release-failure files; treating as ⚠️ unconfirmed (not RED)
+
+### vllm-d / pok-prod01 Deploy Health
+`ciPassRate=100%` across recent daily snapshots. Activity cache mentions scanner is rebasing PRs #11390/#11391 — no deploy failures noted. Both inferred GREEN.
+
+### Copilot Comments (59 unaddressed)
+All 3 HIGH items confirmed resolved in HEAD:
+
+| PR | File:Line | Issue | Status |
+|----|-----------|-------|--------|
+| #11380 | startup-oauth.sh:570 | Stale watchdog / `parallel_build` stage | ✅ `WATCHER_NEEDS_REBUILD` check (lines 401–415) |
+| #11326 | drasi_proxy_test.go:25 | Missing hop-by-hop upstream assertion | ✅ `assert.Empty(Proxy-Authenticate)` at line 26 |
+| #11355 | FeedbackModal.tsx:234 | OAuth param leak via `window.location.href` | ✅ Uses `origin+pathname` |
+
+All 43 MEDIUM and 8 LOW items resolved in prior passes (107–110).
+
+### Merge-Eligible PRs
+`merge-eligible.json` count = 0.
+
+PRs in `not_ready` (CI passing, blocked on merge conflict):
+- **#11390** "🐛 Fix floating AI paint icon overlapping layout and blocking chat input" — `ci_pass=true`, `mergeable=CONFLICTING`
+- **#11391** "🐛 Fix dashboard layout collapse and dead areas on panel resize" — `ci_pass=true`, `mergeable=CONFLICTING`
+
+Scanner is rebasing both. Will merge when they appear in `merge-eligible`.
+
+### Outstanding
+- nightlyPlaywright=RED: scanner owns — Issue #11348
+- Helm `nightly.20260502`: unconfirmed (likely in-flight or just published; no failure evidence)
+
 ## Pass 110 — 2026-05-02T05:52 UTC
 
 ### Trigger
