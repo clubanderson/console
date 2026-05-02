@@ -172,15 +172,6 @@ export function ClusterHealth() {
   const healthyClusters = filteredForStats.filter(c => !isClusterUnreachable(c) && isClusterHealthy(c)).length
   // Unhealthy = not unreachable and not healthy
   const unhealthyClusters = filteredForStats.filter(c => !isClusterUnreachable(c) && !isClusterHealthy(c)).length
-  const totalNodes = filteredForStats.reduce((sum, c) => sum + (c.nodeCount || 0), 0)
-  const totalCPUs = filteredForStats.reduce((sum, c) => sum + (c.cpuCores || 0), 0)
-  const totalPods = filteredForStats.reduce((sum, c) => sum + (c.podCount || 0), 0)
-  const filteredGPUNodes = isAllClustersSelected
-    ? gpuNodes
-    : gpuNodes.filter(n => selectedClusters.some(c => n.cluster.startsWith(c)))
-  const totalGPUs = filteredGPUNodes.reduce((sum, n) => sum + n.gpuCount, 0)
-  const assignedGPUs = filteredGPUNodes.reduce((sum, n) => sum + n.gpuAllocated, 0)
-
   // Show skeleton structure during loading to prevent layout shift
   if (isLoading) {
     return (
@@ -446,19 +437,6 @@ export function ClusterHealth() {
         onPageChange={goToPage}
         needsPagination={needsPagination}
       />
-
-      {/* Footer totals */}
-      <div className="mt-4 pt-3 border-t border-border/50 flex flex-wrap justify-between gap-2 text-xs text-muted-foreground min-w-0 overflow-hidden">
-        <span className="whitespace-nowrap truncate" title={t('clusterHealth.totalNodesTitle')}>{totalNodes} {t('clusterHealth.totalNodes')}</span>
-        {totalCPUs > 0 && <span className="whitespace-nowrap truncate" title={t('clusterHealth.totalCpusTitle')}>{totalCPUs} {t('common:common.cpus')}</span>}
-        {totalGPUs > 0 && (
-          <span className="flex items-center gap-1 text-purple-400 whitespace-nowrap" title={t('clusterHealth.totalGpusTitle', { assigned: assignedGPUs, total: totalGPUs })}>
-            <Cpu className="w-3 h-3 shrink-0" />
-            {assignedGPUs}/{totalGPUs} {t('common:common.gpus')}
-          </span>
-        )}
-        <span className="whitespace-nowrap truncate" title={t('clusterHealth.totalPodsTitle')}>{totalPods} {t('clusterHealth.totalPods')}</span>
-      </div>
 
       {error && (
         <div className="mt-2 p-2 rounded bg-yellow-500/10 border border-yellow-500/20" title={t('clusterHealth.checkKubeconfigNetwork')}>
