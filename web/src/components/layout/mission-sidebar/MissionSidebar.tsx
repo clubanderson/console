@@ -48,6 +48,7 @@ import { ResolutionHistoryPanel } from '../../missions/ResolutionHistoryPanel'
 import { SaveResolutionDialog } from '../../missions/SaveResolutionDialog'
 import { useResolutions, detectIssueSignature } from '../../../hooks/useResolutions'
 import { useTranslation } from 'react-i18next'
+import { Tooltip } from '../../ui/Tooltip'
 import { SAVED_TOAST_MS, FOCUS_DELAY_MS } from '../../../lib/constants/network'
 import { MISSION_FILE_FETCH_TIMEOUT_MS } from '../../missions/browser/missionCache'
 import { isDemoMode } from '../../../lib/demoMode'
@@ -757,19 +758,20 @@ export function MissionSidebar() {
         <div className="flex items-center gap-1 min-w-0">
           {/* + button with dropdown — outside overflow-hidden so the dropdown isn't clipped */}
           <div className="relative mr-1 shrink-0" ref={addMenuRef}>
-            <button
-              onClick={() => setShowAddMenu(prev => !prev)}
-              className={cn(
-                "p-1.5 rounded transition-colors ring-1",
-                showAddMenu
-                  ? "bg-primary text-primary-foreground ring-primary"
-                  : "bg-purple-500/10 text-purple-400 ring-purple-500/30 hover:bg-purple-500/20 hover:text-purple-300"
-              )}
-              aria-label="Add"
-              title="Add"
-            >
+            <Tooltip content={t('actions.add')} side="bottom">
+              <button
+                onClick={() => setShowAddMenu(prev => !prev)}
+                className={cn(
+                  "p-1.5 rounded transition-colors ring-1",
+                  showAddMenu
+                    ? "bg-primary text-primary-foreground ring-primary"
+                    : "bg-purple-500/10 text-purple-400 ring-purple-500/30 hover:bg-purple-500/20 hover:text-purple-300"
+                )}
+                aria-label={t('actions.add')}
+              >
               <Plus className="w-4 h-4" />
             </button>
+            </Tooltip>
             {showAddMenu && (
               <div className="absolute left-0 top-full mt-1 z-50 w-52 rounded-lg border border-border bg-background shadow-lg py-1">
                 <button
@@ -818,24 +820,25 @@ export function MissionSidebar() {
           {/* History toggle button (#10522) — shows/hides mission history list.
               On mobile, the toggle is inside the + menu to avoid crowding the header. */}
           {!isMobile && (
-            <button
-              onClick={toggleHistoryPanel}
-              className={cn(
-                "relative p-1.5 rounded transition-colors ring-1 mr-1 shrink-0",
-                showHistoryPanel
-                  ? "bg-primary text-primary-foreground ring-primary"
-                  : "bg-secondary/50 text-muted-foreground ring-border hover:bg-secondary hover:text-foreground"
-              )}
-              aria-label={t('missionSidebar.toggleHistory', { defaultValue: 'Toggle mission history' })}
-              title={t('missionSidebar.toggleHistory', { defaultValue: 'Toggle mission history' })}
-            >
-              <History className="w-4 h-4" />
-              {listTotalMissions > 0 && !showHistoryPanel && (
-                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 flex items-center justify-center text-[10px] font-medium bg-purple-500 text-white rounded-full px-1">
-                  {listTotalMissions}
-                </span>
-              )}
-            </button>
+            <Tooltip content={t('missionSidebar.toggleHistory', { defaultValue: 'Toggle mission history' })} side="bottom">
+              <button
+                onClick={toggleHistoryPanel}
+                className={cn(
+                  "relative p-1.5 rounded transition-colors ring-1 mr-1 shrink-0",
+                  showHistoryPanel
+                    ? "bg-primary text-primary-foreground ring-primary"
+                    : "bg-secondary/50 text-muted-foreground ring-border hover:bg-secondary hover:text-foreground"
+                )}
+                aria-label={t('missionSidebar.toggleHistory', { defaultValue: 'Toggle mission history' })}
+              >
+                <History className="w-4 h-4" />
+                {listTotalMissions > 0 && !showHistoryPanel && (
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 flex items-center justify-center text-[10px] font-medium bg-purple-500 text-white rounded-full px-1">
+                    {listTotalMissions}
+                  </span>
+                )}
+              </button>
+            </Tooltip>
           )}
           {/* Optional toolbar buttons — clipped when sidebar is narrow */}
           <div className="flex items-center gap-1 overflow-hidden min-w-0 shrink">
@@ -845,38 +848,46 @@ export function MissionSidebar() {
           <div className="flex items-center gap-1 shrink-0">
             {/* Fullscreen and minimize - desktop only */}
             {!isMobile && (isFullScreen ? (
-              <button
-                onClick={() => setFullScreen(false)}
-                className="p-1 rounded transition-colors hover:bg-black/5 dark:hover:bg-white/10"
-                title={t('missionSidebar.exitFullScreen')}
-              >
-                <Minimize2 className="w-5 h-5 text-muted-foreground" />
-              </button>
+              <Tooltip content={t('missionSidebar.exitFullScreen')} side="bottom">
+                <button
+                  onClick={() => setFullScreen(false)}
+                  className="p-1 rounded transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+                  aria-label={t('missionSidebar.exitFullScreen')}
+                >
+                  <Minimize2 className="w-5 h-5 text-muted-foreground" />
+                </button>
+              </Tooltip>
             ) : (
               <>
-                <button
-                  onClick={() => setFullScreen(true)}
-                  className="p-1 rounded transition-colors hover:bg-black/5 dark:hover:bg-white/10"
-                  title={t('missionSidebar.fullScreen')}
-                >
-                  <Maximize2 className="w-5 h-5 text-muted-foreground" />
-                </button>
-                <button
-                  onClick={minimizeSidebar}
-                  className="p-1 rounded transition-colors hover:bg-black/5 dark:hover:bg-white/10"
-                  title={t('missionSidebar.minimizeSidebar')}
-                >
-                  <PanelRightClose className="w-5 h-5 text-muted-foreground" />
-                </button>
+                <Tooltip content={t('missionSidebar.fullScreen')} side="bottom">
+                  <button
+                    onClick={() => setFullScreen(true)}
+                    className="p-1 rounded transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+                    aria-label={t('missionSidebar.fullScreen')}
+                  >
+                    <Maximize2 className="w-5 h-5 text-muted-foreground" />
+                  </button>
+                </Tooltip>
+                <Tooltip content={t('missionSidebar.minimizeSidebar')} side="bottom">
+                  <button
+                    onClick={minimizeSidebar}
+                    className="p-1 rounded transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+                    aria-label={t('missionSidebar.minimizeSidebar')}
+                  >
+                    <PanelRightClose className="w-5 h-5 text-muted-foreground" />
+                  </button>
+                </Tooltip>
               </>
             ))}
-            <button
-              onClick={closeSidebar}
-              className="min-w-[44px] min-h-[44px] p-2 rounded transition-colors hover:bg-black/5 dark:hover:bg-white/10 flex items-center justify-center"
-              title={t('missionSidebar.closeSidebar')}
-            >
-              <X className="w-5 h-5 text-muted-foreground" />
-            </button>
+            <Tooltip content={t('missionSidebar.closeSidebar')} side="bottom">
+              <button
+                onClick={closeSidebar}
+                className="min-w-[44px] min-h-[44px] p-2 rounded transition-colors hover:bg-black/5 dark:hover:bg-white/10 flex items-center justify-center"
+                aria-label={t('missionSidebar.closeSidebar')}
+              >
+                <X className="w-5 h-5 text-muted-foreground" />
+              </button>
+            </Tooltip>
           </div>
         </div>
       </div>
